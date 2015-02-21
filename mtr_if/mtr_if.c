@@ -4,9 +4,10 @@
  *  Created on: Feb 19, 2015
  *      Author: metz
  */
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "../log/log.h"
 #include "mtr_status.h"
 #include "mtr_if.h"
