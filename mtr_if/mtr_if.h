@@ -102,9 +102,9 @@ mtrStatus_t MtrSetVelLimit(mtr_t*, uint32_t);
 
 mtrStatus_t MtrEnableMotor(mtr_t*, uint32_t);
 
-mtrStatus_t MtrGetKp(mtr_t*, int32_t*);
-mtrStatus_t MtrGetKd(mtr_t*, int32_t*);
-mtrStatus_t MtrGetKi(mtr_t*, int32_t*);
+mtrStatus_t MtrGetKp(mtr_t*, uint32_t*);
+mtrStatus_t MtrGetKd(mtr_t*, uint32_t*);
+mtrStatus_t MtrGetKi(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetIntLimit(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetPidOutputLimit(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetFollowingError(mtr_t*, int32_t*);
@@ -130,10 +130,10 @@ mtrStatus_t MtrGetCmdPos(mtr_t*, int32_t*);
 mtrStatus_t MtrGetCmdVel(mtr_t*, int32_t*);
 mtrStatus_t MtrGetCmdAccel(mtr_t*, int32_t*);
 
-mtrStatus_t MtrSetAccel(mtr_t*, uint32_t*);
-mtrStatus_t MtrSetMaxVel(mtr_t*, uint32_t*);
-mtrStatus_t MtrSetPosFinal(mtr_t*, int32_t*);
-mtrStatus_t MtrSetVelFinal(mtr_t*, int32_t*);
+mtrStatus_t MtrSetAccel(mtr_t*, uint32_t);
+mtrStatus_t MtrSetMaxVel(mtr_t*, uint32_t);
+mtrStatus_t MtrSetPosFinal(mtr_t*, int32_t);
+mtrStatus_t MtrSetVelFinal(mtr_t*, int32_t);
 
 mtrStatus_t MtrLoadMove(mtr_t*);
 mtrStatus_t MtrStartMove(mtr_t*);

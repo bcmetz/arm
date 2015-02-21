@@ -7,9 +7,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "../Log/log.h"
+#include "../log/log.h"
 #include "mtr_status.h"
 #include "mtr_if.h"
+
+//Private union
+typedef union{
+	uint8_t 	byte[4];
+	int32_t	  	i32;
+	uint32_t 	ui32;
+}uData_t;
+
+uData_t uData;
+
 
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
@@ -30,21 +40,12 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	return MTR_OK;
 }
 
-//Private union
-typedef union{
-	uint8_t 	byte[4];
-	int32_t	  	i32;
-	uint32_t 	ui32;
-}uData_t;
-
-uData_t uData;
-
 
 mtr_t* MtrAlloc(void) {
 	return (mtr_t*) malloc(sizeof(mtr_t*));
 }
 void MtrFree(mtr_t* self){
-	Log(self->log, INFO, 'Freeing motor (%p)', self);
+	Log(self->log, INFO, "Freeing motor (%p)", self);
 
 	if(self != NULL) {
 		if(self->log != NULL) {
@@ -65,7 +66,7 @@ mtrStatus_t MtrInit(mtr_t* self, mtrID_t id, uint8_t addr) {
 	}
 
 	self->log = LogAlloc();
-	InitLog(self->log, "MTR");
+	InitLog(self->log, STDOUT, "MTR");
 	self->log->levels = ERROR | WARNING | INFO | DIAG;
 
 
@@ -335,14 +336,6 @@ mtrStatus_t MtrGetVelFinal(mtr_t* self, int32_t *data){
 	return ret;
 }
 //////////ADD POS/NEG LIMITS/////////////////
-mtrStatus_t MtrGetCmdPos(mtr_t* self, int32_t *data){
-	mtrStatus_t ret;
-
-	ret = MtrSendCmd(self, GET_PRO_CMD_POS, 0);
-	*data = uData.i32;
-
-	return ret;
-}
 
 mtrStatus_t MtrGetCmdPos(mtr_t* self, int32_t *data){
 	mtrStatus_t ret;
@@ -412,10 +405,10 @@ mtrStatus_t MtrStartMove(mtr_t* self){
 
 	return ret;
 }
-mtrStatus_t MtrMoveNow(mtr_t* self, int32_t){
+mtrStatus_t MtrMoveNow(mtr_t* self, int32_t data){
 	mtrStatus_t ret;
 
-	ret = MtrSendCmd(self, SET_PRO_LOAD_AND_GO, 0);
+	ret = MtrSendCmd(self, SET_PRO_LOAD_AND_GO, data);
 
 	return ret;
 }
@@ -424,6 +417,12 @@ mtrStatus_t MtrStopMove(mtr_t* self){
 	mtrStatus_t ret;
 
 	ret = MtrSendCmd(self, SET_PRO_STOP, 0);
+	if(ret == MTR_OK){
+		if(uData.ui32 != 0){
+			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			ret = uData.ui32;
+		}
+	}
 
 	return ret;
 }
