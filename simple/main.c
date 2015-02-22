@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
 	//Open the comm port
 	comm = CommAlloc();
-	comStat = CommInit(comm, 0, 115200, "8N1");
+	comStat = CommInit(comm, 16, 115200, "8N1");
 	if(comStat != COMM_OK) {
 		Log(logMain, ERROR, "Could not open comm port, shutting down");
 		CommFree(comm);
@@ -42,7 +42,7 @@ int main(int argc, char** argv){
 	MtrInit(mtr[2], comm, MTR_ELB, 0x58);
 
 	MtrGetPos(mtr[0], &pos);
-
+	
 	Log(logMain, INFO, "Exiting program");
 
 	return 0;

@@ -60,7 +60,7 @@ commStatus_t CommRecvData(comm_t *self, uint8_t *buf, uint32_t size, uint32_t ti
 	uint32_t bufSize;
 	uint32_t time=0;
 	if(self->state == OPEN){
-		Log(self->log, DIAG, "Reading %d bytes from %p to comm %p",size,self,buf);
+		Log(self->log, DIAG, "Reading %d bytes from %p to buf %p",size,self,buf);
 		while(bufSize<size || time < timeout) {
 				bufSize = RS232_PollComport(self->cport, buf, 4095);
 				//1ms sleep

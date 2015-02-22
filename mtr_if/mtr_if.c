@@ -25,7 +25,6 @@ uData_t uData;
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	commStatus_t commRet;
-	Log(self->log, DIAG, "Got here");
 
 	self->txBuffer[0] = self->address;
 	self->txBuffer[1] = 5;
@@ -35,7 +34,6 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	Log(self->log, DIAG, "Tx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
 			self->txBuffer[0],self->txBuffer[1],self->txBuffer[2],self->txBuffer[3],
 			self->txBuffer[4],self->txBuffer[5],self->txBuffer[6],self->txBuffer[7]);
-	return MTR_OK;
 	//Send the command out
 	commRet = CommSendData(self->comm, self->txBuffer, MTR_TX_MESSAGE);	
 	if(commRet == COMM_OK){
@@ -57,7 +55,7 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 }
 
 mtr_t* MtrAlloc(void) {
-	return (mtr_t*) malloc(sizeof(mtr_t*));
+	return (mtr_t*) malloc(sizeof(mtr_t));
 }
 
 void MtrFree(mtr_t* self){
