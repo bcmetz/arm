@@ -21,7 +21,7 @@ typedef enum {ERROR=8, WARNING=4, INFO=2, DIAG=1} logLevel_t;
 typedef enum {STDOUT=1, STDERR=2} logLoc_t;
 
 typedef struct {
-	uint8_t		logName[5];
+	char		logName[5];
 	logLoc_t	location;
 	logLevel_t	levels;		//What levels to record
 }log_t;
@@ -38,7 +38,7 @@ log_t* LogAlloc(void);
 void   LogFree(log_t*);
 
 // The logloc_t specifies where to log
-int InitLog(log_t *self, logLoc_t location, char *);
+int LogInit(log_t *self, logLoc_t location, char *);
 
 //Specify the module level, the type of log level and the message string
 //	Messages should be formated using the printf standard

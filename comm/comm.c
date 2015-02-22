@@ -14,7 +14,7 @@ comm_t* CommAlloc(){
 	return ptr; 
 }
 void CommFree(comm_t* self){
-	Log(self->log, INFO, "Freeing comm object %p", self); 
+	Log(self->log, DIAG, "Freeing comm object %p", self); 
 	if(self != NULL){
 		if(self->log != NULL){
 			LogFree(self->log);
@@ -28,15 +28,17 @@ commStatus_t CommInit(comm_t *self, int cport, int brate, char *mode){
 	strcpy(self->mode,mode);
 	self->state = CLOSED;
 	self->log = LogAlloc();
-	InitLog(self->log, STDOUT, "COMM");
 
-	Log(self->log, INFO, "Comm object %p created", self);
+	LogInit(self->log, STDOUT, "COMM");
+
+	Log(self->log, DIAG, "Comm object %p created", self);
 
 	if(RS232_OpenComport(self->cport, self->brate, self->mode)){
 		Log(self->log, ERROR, "Cannot open comm port %d", self->cport);
 		return COMM_ERR_NO_PORT;
 	}
 
+	Log(self->log, INFO, "Opened comm port %d succesfully", self->cport);
 	self->state = OPEN;
 	return COMM_OK;
 }

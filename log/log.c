@@ -11,15 +11,18 @@
 
 //Private self log
 log_t selfLog ={
-	{"LOG"},
-	{STDOUT},
-	{ERROR | WARNING | INFO | DIAG}
-};
+	.logName = "LOG",
+	.location = STDOUT,
+	.levels = ERROR | WARNING | INFO | DIAG};
+	/*
+	{{'L'},{'O'},{'G'},{0}},
+	{(STDOUT)},
+	{(ERROR | WARNING | INFO | DIAG)}
+};*/
 
 log_t *LogAlloc(void){
 	log_t *pLog;
 	pLog = (log_t*)malloc(sizeof(log_t));
-	Log(&selfLog, DIAG, (char*)"Allocated %p", pLog);
 	return pLog;
 }
 
@@ -30,7 +33,7 @@ void LogFree(log_t* self){
 	}
 }
 
-int InitLog(log_t *self, logLoc_t location, char *name) {
+int LogInit(log_t *self, logLoc_t location, char *name) {
 
 	int flags;
 
@@ -56,7 +59,7 @@ int InitLog(log_t *self, logLoc_t location, char *name) {
 
 	self->levels = ERROR | WARNING | INFO | DIAG;
 
-	Log(&selfLog, INFO, (char*)"Logging Initialized (%p)", self);
+	Log(&selfLog, DIAG, (char*)"Logging Initialized (%p)", self);
 
 	return 0;
 }
@@ -105,14 +108,14 @@ int Log(log_t *self, logLevel_t level, char* message, ...) {
 	if(self->location & STDERR) {
 		seconds = GetClockTime(); 
 		snprintf(logMessage,2072, "%.5f\t%s\t%s\t%s\n",
-			seconds, logModuleString, logTypeString, logFormattedString);	
+			seconds, self->logName, logTypeString, logFormattedString);	
 		fprintf(stderr, "%s", logMessage);
 		fflush(stderr);
 	}
 	if(self->location & STDOUT) {
 		seconds = GetClockTime(); 
 		snprintf(logMessage,2072, "%.5f\t%s\t%s\t%s\n",
-			seconds, logModuleString, logTypeString, logFormattedString);	
+			seconds, self->logName, logTypeString, logFormattedString);	
 		fprintf(stdout, "%s", logMessage);
 		fflush(stdout);
 	}

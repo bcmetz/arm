@@ -25,6 +25,7 @@ uData_t uData;
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	commStatus_t commRet;
+	Log(self->log, DIAG, "Got here");
 
 	self->txBuffer[0] = self->address;
 	self->txBuffer[1] = 5;
@@ -34,6 +35,7 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	Log(self->log, DIAG, "Tx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
 			self->txBuffer[0],self->txBuffer[1],self->txBuffer[2],self->txBuffer[3],
 			self->txBuffer[4],self->txBuffer[5],self->txBuffer[6],self->txBuffer[7]);
+	return MTR_OK;
 	//Send the command out
 	commRet = CommSendData(self->comm, self->txBuffer, MTR_TX_MESSAGE);	
 	if(commRet == COMM_OK){
@@ -80,11 +82,11 @@ mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	self->comm = comm;
 	
 	self->log = LogAlloc();
-	InitLog(self->log, STDOUT, "MTR");
+	LogInit(self->log, STDOUT, "MTR");
 	self->log->levels = ERROR | WARNING | INFO | DIAG;
 
 
-	Log(self->log, INFO, "Initialized motor (%p), addr:%d", self, self->address);
+	Log(self->log, INFO, "Initialized motor (%p), addr:0x%02x", self, self->address);
 
 	return MTR_OK;
 }
@@ -212,7 +214,7 @@ mtrStatus_t MtrEnableMotor(mtr_t* self, uint32_t data){
 		ret = MtrSendCmd(self, SET_MTR_ENABLE, data);
 	}
 	else {
-		ret = MtrSendcmd(self, SET_MTR_DISABLE, data);
+		ret = MtrSendCmd(self, SET_MTR_DISABLE, data);
 	}
 
 	return ret;
