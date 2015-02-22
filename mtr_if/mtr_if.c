@@ -89,6 +89,15 @@ mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	return MTR_OK;
 }
 //Get for the MTR module
+mtrStatus_t MtrGetStatus(mtr_t* self, uint32_t *data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, GET_STATUS, 0);
+	*data = uData.ui32;
+
+	return ret;
+}
+
 mtrStatus_t MtrGetPos(mtr_t* self, int32_t *data){
 	mtrStatus_t ret;
 

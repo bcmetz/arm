@@ -116,6 +116,7 @@ typedef struct {
 mtrStatus_t MtrInit(mtr_t*, comm_t*, mtrID_t, uint8_t);
 
 //Get for the MTR module
+mtrStatus_t MtrGetStatus(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetPos(mtr_t*, int32_t*);
 mtrStatus_t MtrGetVel(mtr_t*, int32_t*);
 mtrStatus_t MtrGetVoltage(mtr_t*, int32_t*);
