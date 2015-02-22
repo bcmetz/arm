@@ -90,43 +90,48 @@ int main(int argc, char** argv){
 	MtrPidEnable(mtr[2], 1);
 
 	MtrMoveNow(mtr[0], posAz1);
-	MtrMoveNow(mtr[1], posEl1);
-	MtrMoveNow(mtr[2], posElb1);
+//	MtrMoveNow(mtr[1], posEl1);
+//	MtrMoveNow(mtr[2], posElb1);
 
 	MtrGetStatus(mtr[0], &statAz);	
-	MtrGetStatus(mtr[1], &statEl);	
-	MtrGetStatus(mtr[2], &statElb);	
-	status = (statAz | statEl | statElb) & 0x60;
-	
+//	MtrGetStatus(mtr[1], &statEl);	
+//	MtrGetStatus(mtr[2], &statElb);	
+	status = (statAz/* | statEl | statElb*/) & 0x60;
+/*	while(1){
+		MtrGetStatus(mtr[0], &statAz);	
+//		usleep(100000);
+	}	*/
 	while(1) {
 		//Waiting to get to position 1 
 		while(status) {
 			MtrGetStatus(mtr[0], &statAz);	
-			MtrGetStatus(mtr[1], &statEl);	
-			MtrGetStatus(mtr[2], &statElb);	
-			status = (statAz | statEl | statElb) & 0x60;
+//			MtrGetStatus(mtr[1], &statEl);	
+//			MtrGetStatus(mtr[2], &statElb);	
+			status = (statAz /*| statEl | statElb*/) & 0x60;
 		}	
+		Log(logMain, INFO, "In position 1");
 		//We got to pos 1, now go to 2	
 		MtrMoveNow(mtr[0], posAz2);
-		MtrMoveNow(mtr[1], posEl2);
-		MtrMoveNow(mtr[2], posElb2);
+//		MtrMoveNow(mtr[1], posEl2);
+//		MtrMoveNow(mtr[2], posElb2);
 		MtrGetStatus(mtr[0], &statAz);	
-		MtrGetStatus(mtr[1], &statEl);	
-		MtrGetStatus(mtr[2], &statElb);	
-		status = (statAz | statEl | statElb) & 0x60;
+//		MtrGetStatus(mtr[1], &statEl);	
+//		MtrGetStatus(mtr[2], &statElb);	
+		status = (statAz /*| statEl | statElb*/) & 0x60;
 		while(status) {
 			MtrGetStatus(mtr[0], &statAz);	
-			MtrGetStatus(mtr[1], &statEl);	
-			MtrGetStatus(mtr[2], &statElb);	
-			status = (statAz | statEl | statElb) & 0x60;
+//			MtrGetStatus(mtr[1], &statEl);	
+//			MtrGetStatus(mtr[2], &statElb);	
+			status = (statAz /*| statEl | statElb*/) & 0x60;
 		}	
+		Log(logMain, INFO, "In position 2");
 		MtrMoveNow(mtr[0], posAz1);
-		MtrMoveNow(mtr[1], posEl1);
-		MtrMoveNow(mtr[2], posElb1);
+//		MtrMoveNow(mtr[1], posEl1);
+//		MtrMoveNow(mtr[2], posElb1);
 		MtrGetStatus(mtr[0], &statAz);	
-		MtrGetStatus(mtr[1], &statEl);	
-		MtrGetStatus(mtr[2], &statElb);	
-		status = (statAz | statEl | statElb) & 0x60;
+//		MtrGetStatus(mtr[1], &statEl);	
+//		MtrGetStatus(mtr[2], &statElb);	
+		status = (statAz /*| statEl | statElb*/) & 0x60;
 	}
 	
 	Log(logMain, INFO, "Exiting program");
