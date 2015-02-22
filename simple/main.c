@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 	comm_t *comm;
 	commStatus_t comStat;
 
-	int32_t pos;
+	int32_t posAz, posEl, posElb;
 	mtr_t *mtr[3];
 	mtrStatus_t mtrStat;
 
@@ -41,10 +41,19 @@ int main(int argc, char** argv){
 	MtrInit(mtr[1], comm, MTR_EL, 0x68);
 	MtrInit(mtr[2], comm, MTR_ELB, 0x58);
 
-	MtrGetPos(mtr[0], &pos);
+	while(1) {
+		MtrGetPos(mtr[0], &posAz);
+		MtrGetPos(mtr[1], &posEl);
+		MtrGetPos(mtr[2], &posElb);
+		Log(logMain, INFO, "%d\t%d\t%d", posAz, posEl, posElb);
+	}
 	
 	Log(logMain, INFO, "Exiting program");
 
+	CommFree(comm);
+	MtrFree(mtr[0]);
+	MtrFree(mtr[1]);
+	MtrFree(mtr[2]);
 	return 0;
 }
 

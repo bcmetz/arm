@@ -14,6 +14,8 @@ comm_t* CommAlloc(){
 	return ptr; 
 }
 void CommFree(comm_t* self){
+	Log(self->log, INFO, "Closing comport %d", self->cport);
+	RS232_CloseComport(self->cport);
 	Log(self->log, DIAG, "Freeing comm object %p", self); 
 	if(self != NULL){
 		if(self->log != NULL){
@@ -57,16 +59,17 @@ commStatus_t CommSendData(comm_t *self, uint8_t *buf, uint32_t size) {
 }
 
 commStatus_t CommRecvData(comm_t *self, uint8_t *buf, uint32_t size, uint32_t timeout) {
-	uint32_t bufSize;
+	uint32_t bufSize=0;
 	uint32_t time=0;
 	if(self->state == OPEN){
 		Log(self->log, DIAG, "Reading %d bytes from %p to buf %p",size,self,buf);
-		while(bufSize<size || time < timeout) {
+		while((bufSize < size) && (time < timeout)) {
 				bufSize = RS232_PollComport(self->cport, buf, 4095);
 				//1ms sleep
 				usleep(1000); 
 				time++;
 		}
+		Log(self->log, DIAG,"bufSize: %d, time: %d",bufSize, time);
 		if(time >= timeout){
 			Log(self->log, ERROR, "Comm timeout, only recv'd %d/%d bytes in %d ms", bufSize, size, timeout);
 			return COMM_ERR_TIMEOUT;
