@@ -2,7 +2,10 @@
 #ifndef MTRCMD_H_
 #define MTRCMD_H_
 
+#define MTR_CMD_TIMEOUT 500 //ms
 #define MTR_BUF_SIZE 16
+#define MTR_TX_MESSAGE 8
+#define MTR_RX_MESSAGE 6
 typedef enum {
 	MTR_AZ,
 	MTR_EL,
@@ -11,6 +14,32 @@ typedef enum {
 
 	NUM_MOTORS
 } mtrID_t;
+
+typedef enum {
+				MTR_OK=0,
+				//Generic Errors
+				MTR_ERR_NOT_ENABLED,
+				MTR_ERR_RANGE,
+				MTR_ERR_NULL_SRC,		//Non initialized pointer
+				//Motor Errors
+				MTR_ERR_EN_ESTOP,		//Can not enable motor, estop depressed
+				//Profiler Errors
+				MTR_ERR_NO_SLN,			//Profiler could not find a solution
+				MTR_ERR_BAD_TIME,		//Calculated time was less than 0
+				MTR_ERR_INVALID_MOVE,	//Either acceleration or vMax is <=0
+				MTR_ERR_MOVE_OOB, 		//Move is out of the set position limits
+				MTR_ERR_EMPTY_BUFFER,	//Cannot start move on empty buffer
+				MTR_ERR_BUF_FAULT,		//Shouldn't be able to get this fault
+				MTR_ERR_BUFFERS_FULL, 	//Cannot load move both buffers are full
+				//Command Errors
+				MTR_ERR_NULL_CMD,		//Some how a NULL command got through
+				MTR_ERR_UNKNOWN_CMD,	//I dont know what command ID that is
+
+
+				MTR_ERR_COMM,			//Error with sending command
+				MTR_ERR_TIMEOUT		//Timed out waiting for reply
+			} mtrStatus_t;
+
 
 typedef enum {
 	SET_MTR_POS=0,
@@ -80,10 +109,11 @@ typedef struct {
 	uint8_t	rxBuffer[MTR_BUF_SIZE];  //<ADDR><RXLEN><DATA[0]>..<DATA[3]>
 	uint8_t	txBuffer[MTR_BUF_SIZE];  //<ADDR><TXLEN><RXLEN><DATA[0]>..<DATA[3]>
 	log_t	*log;
+	comm_t *comm;
 }mtr_t;
 
 //Input: mtr_t pointer, motorID, motor address
-mtrStatus_t MtrInit(mtr_t*, mtrID_t, uint8_t);
+mtrStatus_t MtrInit(mtr_t*, comm_t*, mtrID_t, uint8_t);
 
 //Get for the MTR module
 mtrStatus_t MtrGetPos(mtr_t*, int32_t*);

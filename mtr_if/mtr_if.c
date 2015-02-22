@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "../log/log.h"
-#include "mtr_status.h"
+#include "../comm/comm.h"
 #include "mtr_if.h"
 
 //Private union
@@ -24,6 +24,7 @@ uData_t uData;
 
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
+	commStatus_t commRet;
 
 	self->txBuffer[0] = self->address;
 	self->txBuffer[1] = 5;
@@ -33,18 +34,30 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	Log(self->log, DIAG, "Tx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
 			self->txBuffer[0],self->txBuffer[1],self->txBuffer[2],self->txBuffer[3],
 			self->txBuffer[4],self->txBuffer[5],self->txBuffer[6],self->txBuffer[7]);
-	//SEND DATA
-	memcpy(&uData, &self->rxBuffer[2], sizeof(uint8_t)*4);
-	Log(self->log, DIAG, "Rx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-			self->rxBuffer[0],self->rxBuffer[1],self->rxBuffer[2],self->rxBuffer[3],
-			self->rxBuffer[4],self->rxBuffer[5]);
-	return MTR_OK;
+	//Send the command out
+	commRet = CommSendData(self->comm, self->txBuffer, MTR_TX_MESSAGE);	
+	if(commRet == COMM_OK){
+	  commRet = CommRecvData(self->comm, self->rxBuffer, MTR_RX_MESSAGE, MTR_CMD_TIMEOUT);
+  		if(commRet == COMM_OK) {
+			memcpy(&uData, &self->rxBuffer[2], sizeof(uint8_t)*4);
+			Log(self->log, DIAG, "Rx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+				self->rxBuffer[0],self->rxBuffer[1],self->rxBuffer[2],self->rxBuffer[3],
+				self->rxBuffer[4],self->rxBuffer[5]);
+			return MTR_OK;
+		}
+		else if(commRet == COMM_ERR_TIMEOUT) {
+			Log(self->log, WARNING, "Error %d, recv timed out", commRet);
+			return MTR_ERR_TIMEOUT;
+		}	
+	}
+	Log(self->log, WARNING, "Error %d, could not send data to comm", commRet);
+	return MTR_ERR_COMM; 
 }
-
 
 mtr_t* MtrAlloc(void) {
 	return (mtr_t*) malloc(sizeof(mtr_t*));
 }
+
 void MtrFree(mtr_t* self){
 	Log(self->log, INFO, "Freeing motor (%p)", self);
 
@@ -56,16 +69,16 @@ void MtrFree(mtr_t* self){
 	}
 }
 
-mtrStatus_t MtrInit(mtr_t* self, mtrID_t id, uint8_t addr) {
+mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	int i;
 
 	self->address = addr;
 
-	for(i=0;i<MTR_BUF_SIZE;i++){
-		self->rxBuffer[i] = 0;
-		self->txBuffer[i] = 0;
-	}
+	memset(self->txBuffer, 0, MTR_BUF_SIZE);
+	memset(self->rxBuffer, 0, MTR_BUF_SIZE);
 
+	self->comm = comm;
+	
 	self->log = LogAlloc();
 	InitLog(self->log, STDOUT, "MTR");
 	self->log->levels = ERROR | WARNING | INFO | DIAG;
@@ -132,7 +145,7 @@ mtrStatus_t MtrSetPos(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_MTR_POS, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -145,7 +158,7 @@ mtrStatus_t MtrSetVoltage(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_MTR_VOLTAGE, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -158,7 +171,7 @@ mtrStatus_t MtrSetBusVoltage(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_MTR_BUS_VOLTAGE, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -171,7 +184,7 @@ mtrStatus_t MtrSetVoltLimit(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, GET_MTR_VOLT_LIM, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -184,7 +197,7 @@ mtrStatus_t MtrSetVelLimit(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_MTR_VEL_LIM, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -284,7 +297,7 @@ mtrStatus_t MtrSetKp(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PID_KP, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -297,7 +310,7 @@ mtrStatus_t MtrSetKd(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PID_KD, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -310,7 +323,7 @@ mtrStatus_t MtrSetKi(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PID_KI, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -323,7 +336,7 @@ mtrStatus_t MtrSetIntLimit(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_PID_INT_LIM, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -336,7 +349,7 @@ mtrStatus_t MtrSetPidOutputLimit(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_PID_OUT_LIM, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -349,7 +362,7 @@ mtrStatus_t MtrSetGainShift(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_PID_GAIN_SHIFT, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -435,7 +448,7 @@ mtrStatus_t MtrSetAccel(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_PRO_ACCEL, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -448,7 +461,7 @@ mtrStatus_t MtrSetMaxVel(mtr_t* self, uint32_t data){
 	ret = MtrSendCmd(self, SET_PRO_MAX_VEL, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -461,7 +474,7 @@ mtrStatus_t MtrSetPosFinal(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PRO_POS_FINAL, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -474,7 +487,7 @@ mtrStatus_t MtrSetVelFinal(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PRO_VEL_FINAL, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -488,7 +501,7 @@ mtrStatus_t MtrLoadMove(mtr_t* self){
 	ret = MtrSendCmd(self, SET_PRO_LOAD, 0);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -501,7 +514,7 @@ mtrStatus_t MtrStartMove(mtr_t* self){
 	ret = MtrSendCmd(self, SET_PRO_START, 0);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -514,7 +527,7 @@ mtrStatus_t MtrMoveNow(mtr_t* self, int32_t data){
 	ret = MtrSendCmd(self, SET_PRO_LOAD_AND_GO, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
@@ -528,7 +541,7 @@ mtrStatus_t MtrStopMove(mtr_t* self){
 	ret = MtrSendCmd(self, SET_PRO_STOP, 0);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
-			Log(self->log, WARNING, "Motor(%02x) error code: %02x",self->address, uData.ui32);
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
 			ret = uData.ui32;
 		}
 	}
