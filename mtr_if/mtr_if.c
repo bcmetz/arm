@@ -21,11 +21,76 @@ typedef union{
 
 uData_t uData;
 
+const char *mtrDict[4]={
+"AZ",
+"EL",
+"ELB",
+"WRST"
+};
+
+const char *cmdDict[54]={
+"SET_MTR_POS",
+"SET_MTR_BUS_VOLTAGE",
+"SET_MTR_VOLTAGE",
+"SET_MTR_VOLT_LIM",
+"SET_MTR_VEL_LIM",
+"SET_MTR_ENC_SIGN",
+"SET_MTR_ENABLE",
+"SET_MTR_DISABLE",
+"GET_MTR_POS",
+"GET_MTR_VEL",
+"GET_MTR_BUS_VOLTAGE",
+"GET_MTR_VOLTAGE",
+"GET_MTR_VOLT_LIM",
+"GET_MTR_VEL_LIM",
+"GET_MTR_ENC_SIGN",
+"SET_PID_KP",
+"SET_PID_KI",
+"SET_PID_KD",
+"SET_PID_INT_LIM",
+"SET_PID_OUT_LIM",
+"SET_PID_GAIN_SHIFT",
+"SET_PID_ENABLE",
+"SET_PID_DISABLE",
+"GET_PID_KP",
+"GET_PID_KI",
+"GET_PID_KD",
+"GET_PID_INT_LIM",
+"GET_PID_OUT_LIM",
+"GET_PID_FOLLOWING_ERROR",
+"GET_PID_OUTPUT",
+"GET_PID_INT_ERROR",
+"GET_PID_GAIN_SHIFT",
+"SET_PRO_ACCEL",
+"SET_PRO_STOP_ACCEL",
+"SET_PRO_MAX_VEL",
+"SET_PRO_VEL_FINAL",
+"SET_PRO_POS_FINAL",
+"SET_PRO_POS_LIM",
+"SET_PRO_NEG_LIM",
+"SET_PRO_LOAD",
+"SET_PRO_LOAD_AND_GO",
+"SET_PRO_STOP",
+"SET_PRO_START",
+"GET_PRO_CMD_POS",
+"GET_PRO_CMD_VEL",
+"GET_PRO_CMD_ACCEL",
+"GET_PRO_ACCEL",
+"GET_PRO_STOP_ACCEL",
+"GET_PRO_MAX_VEL",
+"GET_PRO_VEL_FINAL",
+"GET_PRO_POS_FINAL",
+"GET_PRO_POS_LIM",
+"GET_PRO_NEG_LIM",
+"GET_STATUS"
+};
+
 
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	commStatus_t commRet;
 
+	Log(self->log, INFO, "Sending command %s %s %d", mtrDict[self->mtrID], cmdDict[cmd], (int32_t)data);
 	self->txBuffer[0] = self->address;
 	self->txBuffer[1] = 5;
 	self->txBuffer[2] = 4;
@@ -43,6 +108,7 @@ mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 			Log(self->log, DIAG, "Rx:0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
 				self->rxBuffer[0],self->rxBuffer[1],self->rxBuffer[2],self->rxBuffer[3],
 				self->rxBuffer[4],self->rxBuffer[5]);
+			Log(self->log, INFO, "Completed command %s, ret %d", cmdDict[cmd], uData.i32);
 			return MTR_OK;
 		}
 		else if(commRet == COMM_ERR_TIMEOUT) {
@@ -78,6 +144,8 @@ mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	memset(self->rxBuffer, 0, MTR_BUF_SIZE);
 
 	self->comm = comm;
+
+	self->mtrID = id;
 	
 	self->log = LogAlloc();
 	LogInit(self->log, STDOUT, "MTR");
