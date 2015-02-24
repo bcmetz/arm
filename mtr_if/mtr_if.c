@@ -90,7 +90,7 @@ const char *cmdDict[54]={
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
 	commStatus_t commRet;
 
-	Log(self->log, INFO, "Sending command %s %s %d", mtrDict[self->mtrID], cmdDict[cmd], (int32_t)data);
+	Log(self->log, INFO, "Sending command \"%s %s %d\"", mtrDict[self->mtrID], cmdDict[cmd], (int32_t)data);
 	self->txBuffer[0] = self->address;
 	self->txBuffer[1] = 5;
 	self->txBuffer[2] = 4;
@@ -216,6 +216,15 @@ mtrStatus_t MtrGetVelLimit(mtr_t* self, uint32_t *data){
 	return ret;
 }
 
+mtrStatus_t MtrGetEncSign(mtr_t* self, int32_t *data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, GET_MTR_ENC_SIGN, 0);
+	*data = uData.ui32;
+
+	return ret;
+}
+
 mtrStatus_t MtrSetPos(mtr_t* self, int32_t data){
 	mtrStatus_t ret;
 
@@ -268,6 +277,7 @@ mtrStatus_t MtrSetVoltLimit(mtr_t* self, uint32_t data){
 
 	return ret;
 }
+
 mtrStatus_t MtrSetVelLimit(mtr_t* self, uint32_t data){
 	mtrStatus_t ret;
 
@@ -282,6 +292,19 @@ mtrStatus_t MtrSetVelLimit(mtr_t* self, uint32_t data){
 	return ret;
 }
 
+mtrStatus_t MtrSetEncSign(mtr_t* self, int32_t data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, SET_MTR_VEL_LIM, data);
+	if(ret == MTR_OK){
+		if(uData.ui32 != 0){
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
+			ret = uData.ui32;
+		}
+	}
+
+	return ret;
+}
 mtrStatus_t MtrEnableMotor(mtr_t* self, uint32_t data){
 	mtrStatus_t ret;
 
@@ -492,7 +515,24 @@ mtrStatus_t MtrGetVelFinal(mtr_t* self, int32_t *data){
 
 	return ret;
 }
-//////////ADD POS/NEG LIMITS/////////////////
+
+mtrStatus_t MtrGetPosLim(mtr_t *self, int32_t *data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, GET_PRO_POS_LIM, 0);
+	*data = uData.i32;
+
+	return ret;
+}
+
+mtrStatus_t MtrGetNegLim(mtr_t *self, int32_t *data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, GET_PRO_NEG_LIM, 0);
+	*data = uData.i32;
+
+	return ret;
+}
 
 mtrStatus_t MtrGetCmdPos(mtr_t* self, int32_t *data){
 	mtrStatus_t ret;
@@ -502,6 +542,7 @@ mtrStatus_t MtrGetCmdPos(mtr_t* self, int32_t *data){
 
 	return ret;
 }
+
 mtrStatus_t MtrGetCmdVel(mtr_t* self, int32_t *data){
 	mtrStatus_t ret;
 
@@ -562,6 +603,34 @@ mtrStatus_t MtrSetVelFinal(mtr_t* self, int32_t data){
 	mtrStatus_t ret;
 
 	ret = MtrSendCmd(self, SET_PRO_VEL_FINAL, data);
+	if(ret == MTR_OK){
+		if(uData.ui32 != 0){
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
+			ret = uData.ui32;
+		}
+	}
+
+	return ret;
+}
+
+mtrStatus_t MtrSetPosLim(mtr_t* self, int32_t data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, SET_PRO_POS_LIM, data);
+	if(ret == MTR_OK){
+		if(uData.ui32 != 0){
+			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
+			ret = uData.ui32;
+		}
+	}
+
+	return ret;
+}
+
+mtrStatus_t MtrSetNegLim(mtr_t* self, int32_t data){
+	mtrStatus_t ret;
+
+	ret = MtrSendCmd(self, SET_PRO_NEG_LIM, data);
 	if(ret == MTR_OK){
 		if(uData.ui32 != 0){
 			Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);

@@ -121,6 +121,7 @@ mtrStatus_t MtrGetVoltage(mtr_t*, int32_t*);
 mtrStatus_t MtrGetBusVoltage(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetVoltLimit(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetVelLimit(mtr_t*, uint32_t*);
+mtrStatus_t MtrGetEncSign(mtr_t*, int32_t*);
 
 mtrStatus_t MtrSetPos(mtr_t*, int32_t);
 mtrStatus_t MtrSetVoltage(mtr_t*, int32_t);
@@ -128,6 +129,7 @@ mtrStatus_t MtrSetBusVoltage(mtr_t*, uint32_t);
 mtrStatus_t MtrSetBusVoltage(mtr_t*, uint32_t);
 mtrStatus_t MtrSetVoltLimit(mtr_t*, uint32_t);
 mtrStatus_t MtrSetVelLimit(mtr_t*, uint32_t);
+mtrStatus_t MtrSetEncSign(mtr_t*, int32_t);
 
 mtrStatus_t MtrEnableMotor(mtr_t*, uint32_t);
 
@@ -154,6 +156,8 @@ mtrStatus_t MtrGetAccel(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetMaxVel(mtr_t*, uint32_t*);
 mtrStatus_t MtrGetPosFinal(mtr_t*, int32_t*);
 mtrStatus_t MtrGetVelFinal(mtr_t*, int32_t*);
+mtrStatus_t MtrGetPosLim(mtr_t*, int32_t*);
+mtrStatus_t MtrGetNegLim(mtr_t*, int32_t*);
 
 mtrStatus_t MtrGetCmdPos(mtr_t*, int32_t*);
 mtrStatus_t MtrGetCmdVel(mtr_t*, int32_t*);
@@ -163,6 +167,8 @@ mtrStatus_t MtrSetAccel(mtr_t*, uint32_t);
 mtrStatus_t MtrSetMaxVel(mtr_t*, uint32_t);
 mtrStatus_t MtrSetPosFinal(mtr_t*, int32_t);
 mtrStatus_t MtrSetVelFinal(mtr_t*, int32_t);
+mtrStatus_t MtrSetPosLim(mtr_t*, int32_t);
+mtrStatus_t MtrSetNegLim(mtr_t*, int32_t);
 
 mtrStatus_t MtrLoadMove(mtr_t*);
 mtrStatus_t MtrStartMove(mtr_t*);
