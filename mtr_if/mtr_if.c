@@ -85,6 +85,65 @@ const char *cmdDict[54]={
 "GET_STATUS"
 };
 
+struct stat{
+	uint8_t get;
+	uint8_t sign;
+} stat[]= {
+	{0,1}, //	SET_MTR_POS=0,
+	{0,0}, //	SET_MTR_BUS_VOLTAGE,
+	{0,0}, //	SET_MTR_VOLTAGE,
+	{0,0}, //	SET_MTR_VOLT_LIM,
+	{0,0}, //	SET_MTR_VEL_LIM,
+	{0,1}, //	SET_MTR_ENC_SIGN,
+	{0,0}, //	SET_MTR_ENABLE,
+	{0,0}, //	SET_MTR_DISABLE,
+	{1,1}, //	GET_MTR_POS,
+	{1,1}, //	GET_MTR_VEL,
+	{1,0}, //	GET_MTR_BUS_VOLTAGE,
+	{1,1}, //	GET_MTR_VOLTAGE,
+	{1,0}, //	GET_MTR_VOLT_LIM,
+	{1,0}, //	GET_MTR_VEL_LIM,
+	{1,1}, //	GET_MTR_ENC_SIGN,
+	{0,0}, //	SET_PID_KP,
+	{0,0}, //	SET_PID_KI,
+	{0,0}, //	SET_PID_KD,
+	{0,0}, //	SET_PID_INT_LIM,
+	{0,0}, //	SET_PID_OUT_LIM,
+	{0,0}, //	SET_PID_GAIN_SHIFT,
+	{1,0}, //	SET_PID_ENABLE,
+	{1,0}, //	SET_PID_DISABLE,
+	{1,0}, //	GET_PID_KP,
+	{1,0}, //	GET_PID_KI,
+	{1,0}, //	GET_PID_KD,
+	{1,0}, //	GET_PID_INT_LIM,
+	{1,0}, //	GET_PID_OUT_LIM,
+	{1,1}, //	GET_PID_FOLLOWING_ERROR,
+	{1,1}, //	GET_PID_OUTPUT,
+	{1,1}, //	GET_PID_INT_ERROR,
+	{1,0}, //	GET_PID_GAIN_SHIFT,
+	{0,0}, //	SET_PRO_ACCEL,
+	{0,0}, //	SET_PRO_STOP_ACCEL,
+	{0,0}, //	SET_PRO_MAX_VEL,
+	{0,1}, //	SET_PRO_VEL_FINAL,
+	{0,1}, //	SET_PRO_POS_FINAL,
+	{0,1}, //	SET_PRO_POS_LIM,
+	{0,1}, //	SET_PRO_NEG_LIM,
+	{0,0}, //	SET_PRO_LOAD,
+	{0,1}, //	SET_PRO_LOAD_AND_GO,
+	{0,0}, //	SET_PRO_STOP,
+	{0,0}, //	SET_PRO_START,
+	{1,1}, //	GET_PRO_CMD_POS,
+	{1,1}, //	GET_PRO_CMD_VEL,
+	{1,1}, //	GET_PRO_CMD_ACCEL,
+	{1,0}, //	GET_PRO_ACCEL,
+	{1,0}, //	GET_PRO_STOP_ACCEL,
+	{1,0}, //	GET_PRO_MAX_VEL,
+	{1,1}, //	GET_PRO_VEL_FINAL,
+	{1,1}, //	GET_PRO_POS_FINAL,
+	{1,1}, //	GET_PRO_POS_LIM,
+	{1,1}, //	GET_PRO_NEG_LIM,
+	{1,0}, //	GET_STATUS,
+};
 
 //This is a private function
 mtrStatus_t MtrSendCmd(mtr_t* self, cmdID_t cmd, uint32_t data) {
@@ -155,6 +214,27 @@ mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	Log(self->log, INFO, "Initialized motor (%p), addr:0x%02x", self, self->address);
 
 	return MTR_OK;
+}
+
+mtrStatus_t MtrSimpleIf(mtr_t* self, mtrID_t id, uint32_t *data){
+	mtrStatus_t ret;
+
+	if(stat[id].get) {
+		ret = MtrSendCmd(self, id, 0);
+		*data = uData.ui32;
+	}
+	else {
+		ret = MtrSendCmd(self, id, *data);
+		if(ret == MTR_OK){
+			if(uData.ui32 != 0){
+				Log(self->log, WARNING, "Motor(0x%02x) error code: %02x",self->address, uData.ui32);
+				ret = uData.ui32;
+				*data = uData.ui32;
+			}
+		}
+	}	
+
+	return ret;
 }
 //Get for the MTR module
 mtrStatus_t MtrGetStatus(mtr_t* self, uint32_t *data){
