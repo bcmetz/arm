@@ -5,8 +5,9 @@
 #define NUM_MTRS 4
 
 typedef enum {
-	READY=0,	//Ready for command
-	RUN_CMD, //Client->Server run loaded command ID on mtr ID
+	IDLE=0,	//Ready for command
+	CLIENT_REQ, //Client will set this first to alert other clients
+	RUN_CMD, //Client sets cmd id/data then sets flag to this state
 	BUSY,		//Server busy processing command
 	DATA_READY //Signal the client to read the data, client must set back to ready
 } srvState_t;
