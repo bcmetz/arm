@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
 	mtr_t *mtr[4];
 	mtrStatus_t mtrStat;
 
-	keyCmd = 4848;
-	keyTlm = 8888;
+	keyCmd = 0x4848;
+	keyTlm = 0x8888;
 
 	mtrCmdIf_t *mtrCmdIf;
 	mtrTlmIf_t *mtrTlmIf;
