@@ -1,0 +1,25 @@
+
+function v = rotM(r,p,y)
+v = [cos(p)*cos(y) -cos(p)*sin(y) -sin(p);cos(r)*sin(y)-sin(r)*sin(p)*cos(y) sin(r)*sin(p)*sin(y)+cos(r)*cos(y) -sin(r)*cos(p); cos(r)*sin(p)*cos(y)+sin(r)*sin(y) sin(r)*cos(y)-cos(r)*sin(p)*sin(y) cos(r)*cos(p)];
+end
+
+Az2El = [0 0.625 -1.0]
+AzRot = rotM(0,0,0); %about z
+Az2El= Az2El * AzRot
+endPoint = Az2El
+
+El2Elbow = [6 0 0];
+ElRot = rotM(0,0,0); %about y
+El2Elbow = ((El2Elbow * AzRot)*ElRot)
+endPoint = endPoint + El2Elbow
+
+Elbow2Wrist = [6 -0.5 0];
+ElbRot = rotM(0,0,0); %about y
+Elbow2Wrist = (((Elbow2Wrist * AzRot)*ElRot)*ElbRot)
+endPoint = endPoint + Elbow2Wrist
+
+Wrist2Plate = [1 -0.5625 0];
+WrstRot = rotM(0,pi/2,0); %about y
+Wrist2Plate = ((((Wrist2Plate * AzRot)*ElRot)*ElbRot)*WrstRot)
+endPoint = endPoint + Wrist2Plate
+
