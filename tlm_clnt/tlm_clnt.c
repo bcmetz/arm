@@ -1,8 +1,8 @@
+#include <stdio.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <stdio.h>
-#include <stdint.h>
 
 
 #include "../log/log.h"
@@ -10,56 +10,67 @@
 #include "../mtr_if/mtr_if.h"
 #include "../mtr_srv/mtr_srv.h"
 
+log_t logClnt;
 
-int main(int argc, char **argv) {
-	uint32_t i=0;
+int MtrClntShmat(mtrCmdIf_t** self, key_t key) {
    int shmid;
-	int pos, vel;	
-   key_t key;
-   mtrCmdIf_t *mtrCmdIf;
 
-   key = 0x4848;
+	LogInit(&logClnt, STDOUT, "CLNT");
+
+	Log(&logClnt, INFO, "Attaching to shm key 0x%04x", (uint32_t)key);
 
    if ((shmid = shmget(key, sizeof(mtrCmdIf_t), 0666)) < 0) {
-       perror("shmget");
-       exit(1);
+		Log(&logClnt, ERROR, "Could not get shmid, exiting!"); 
+      exit(1);
    }
 
-   if ((mtrCmdIf = shmat(shmid, NULL, 0)) == (mtrCmdIf_t *) -1) {
-       perror("shmat");
-       exit(1);
+   if ((*self = shmat(shmid, NULL, 0)) == (mtrCmdIf_t *) -1) {
+		Log(&logClnt, ERROR, "Could not attach to shmid: %d, exiting!",shmid); 
+      exit(1);
    }
 
-	printf("Yay we connected!\n");
+	Log(&logClnt, INFO, "Attached to shared memory");
+	
+	return 0;
+}
 
-	while(1){
-		i++;
-		if(mtrCmdIf->state == IDLE) {
-			mtrCmdIf->state = CLIENT_REQ;
-			mtrCmdIf->mtrID = MTR_AZ;
-			mtrCmdIf->cmdID = GET_MTR_POS;
-			mtrCmdIf->state = RUN_CMD;
-			while(mtrCmdIf->state < DATA_READY) {
-				usleep(1000);
+int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, const uint32_t timeout){ 
+
+	uint32_t i=0;
+
+	//Sleeping for 10us * 100 = 1ms
+	while(i < 100*timeout){
+		if(self->state == IDLE) {
+			self->state = CLIENT_REQ;
+			self->mtrID = mtr;
+			self->cmdID = cmd;
+			self->state = RUN_CMD;
+			i=0;
+			//Wait for server to update the flag
+			while(self->state < DATA_READY) {
+				usleep(100);
+				i++;
+				if(i > 100*timeout) {
+					Log(&logClnt, WARNING, "Timed out waiting for DATA_READY");
+					return -1;
+				}
 			}
-			pos = (int32_t) mtrCmdIf->data;	
-			
-			//Grab velocity
-			mtrCmdIf->state = CLIENT_REQ;
-			mtrCmdIf->mtrID = MTR_AZ;
-			mtrCmdIf->cmdID = GET_MTR_VEL;
-			mtrCmdIf->state = RUN_CMD;
-			while(mtrCmdIf->state < DATA_READY) {
-				usleep(1000);
+			if(self->cmdID == cmd && \
+					self->mtrID == mtr){
+				*data = self->data;	
+				self->state = IDLE;
+				return 0;
 			}
-			vel = (int32_t) mtrCmdIf->data;	
-			mtrCmdIf->state = IDLE;
+			else {
+				Log(&logClnt, WARNING, "CmdID or mtrID mismatch, cmd client:%d / cmd serv %d, mtr client %d / mtr serv %d", cmd, self->cmdID, mtr, self->mtrID);
+				return -2;
+			}
 		}
-		fprintf(stdout, "%d %d %d\n",i,pos,vel);
-		fflush(stdout);
-		usleep(100000);
+		
+		i++;
+		usleep(100);
 	};
 
-
-	return 0;
+	Log(&logClnt, WARNING, "Timed out waiting for IDLE state");
+	return -1;
 }
