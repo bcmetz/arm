@@ -1,0 +1,41 @@
+<robot name="arm4dof">
+  <link name="base" />
+  <link name="az" />
+  <link name="el" />
+  <link name="elbow" />
+  <link name="wrist" />
+  <link name="plate" />
+
+  <joint name="joint1" type="continuous">
+    <parent link="base"/>
+    <child link="az"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <joint name="joint2" type="continuous">
+    <parent link="az"/>
+    <child link="el"/>
+    <origin xyz="0 0.625 -1.0" rpy="0 0 0" />
+    <axis xyz=" 0 1 0" />
+  </joint>
+
+  <joint name="joint3" type="continuous">
+    <parent link="el"/>
+    <child link="elbow"/>
+    <origin xyz="6 0 0" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+  </joint>
+  <joint name="joint4" type="continuous">
+    <parent link="elbow"/>
+    <child link="wrist"/>
+    <origin xyz="6 -0.5 0" rpy="0 0 0" />
+    <axis xyz="0 1 0" />
+  </joint>
+  <joint name="joint5" type="continuous">
+    <parent link="wrist"/>
+    <child link="plate"/>
+    <origin xyz="1 -0.5625 0" rpy="0 0 0" />
+  </joint>
+</robot>
+
