@@ -14,7 +14,8 @@
 
 int main(int argc, char **argv) {
 	key_t keyCmd, keyTlm;	
-	
+
+	int timeout;	
 	int shmCmdID, shmTlmID;
 
 	log_t *logMain;
@@ -62,19 +63,21 @@ int main(int argc, char **argv) {
 	mtr[0] = (mtr_t*)MtrAlloc();
 	mtr[1] = (mtr_t*)MtrAlloc();
 	mtr[2] = (mtr_t*)MtrAlloc();
+	mtr[3] = (mtr_t*)MtrAlloc();
 
 	MtrInit(mtr[0], comm, MTR_AZ, 0x08);
-	MtrInit(mtr[1], comm, MTR_EL, 0x68);
-	MtrInit(mtr[2], comm, MTR_ELB, 0x58);
-	//MtrInit(mtr[2], comm, MTR_WRST, 0x38);
+	MtrInit(mtr[1], comm, MTR_EL, 0x18);
+	MtrInit(mtr[2], comm, MTR_ELB, 0x48);
+	MtrInit(mtr[3], comm, MTR_WRST, 0x38);
 
 	Log(logMain, INFO, "Motor server ready");
 
+	timeout = TIMEOUT;
 	while(1) {
 		if(mtrCmdIf->state == RUN_CMD) {
 			mtrCmdIf->state = BUSY;
 			Log(logMain, DIAG, "Transitioned to BUSY");
-			if(mtrCmdIf->mtrID < MTR_WRST){
+			if(mtrCmdIf->mtrID <= MTR_WRST){
 				mtrStat = MtrSimpleIf(mtr[mtrCmdIf->mtrID],\
 						mtrCmdIf->cmdID,&mtrCmdIf->data);
 				if(mtrStat == MTR_OK) {
@@ -92,9 +95,20 @@ int main(int argc, char **argv) {
 				mtrCmdIf->state = DATA_READY;
 			}
 			Log(logMain, DIAG, "Transitioned to DATA_READY");
-		}	
-
-		usleep(100);
+		}
+		//The process has 1ms to read its data before timeout	
+		if(mtrCmdIf->state & (DATA_READY | CLIENT_REQ)){
+			timeout--;
+			if(timeout == 0){
+				Log(logMain,WARNING,"Timeout reached, a process failed to meet timing, state = %d", mtrCmdIf->state);
+				mtrCmdIf->state = IDLE;
+				timeout = TIMEOUT;
+			}
+		}
+		else{
+			timeout = TIMEOUT;
+		} 
+		usleep(10);
 	}	
 
 	shmdt(mtrCmdIf);
