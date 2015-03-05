@@ -113,7 +113,7 @@ typedef struct {
 //Input: mtr_t pointer, motorID, motor address
 mtrStatus_t MtrInit(mtr_t*, comm_t*, mtrID_t, uint8_t);
 
-mtrStatus_t MtrSimpleIf(mtr_t*, mtrID_t, uint32_t*);
+mtrStatus_t MtrSimpleIf(mtr_t*, cmdID_t, uint32_t*);
 
 //Get for the MTR module
 mtrStatus_t MtrGetStatus(mtr_t*, uint32_t*);

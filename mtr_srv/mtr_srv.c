@@ -78,8 +78,9 @@ int main(int argc, char **argv) {
 			mtrCmdIf->state = BUSY;
 			Log(logMain, DIAG, "Transitioned to BUSY");
 			if(mtrCmdIf->mtrID <= MTR_WRST){
+				Log(logMain, INFO, "mtrID:%d cmdID:%d data:%d",mtrCmdIf->mtrID, mtrCmdIf->cmdID, mtrCmdIf->data);
 				mtrStat = MtrSimpleIf(mtr[mtrCmdIf->mtrID],\
-						mtrCmdIf->cmdID,&mtrCmdIf->data);
+						mtrCmdIf->cmdID,&(mtrCmdIf->data));
 				if(mtrStat == MTR_OK) {
 					mtrCmdIf->state = DATA_READY;
 				}

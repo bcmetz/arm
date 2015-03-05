@@ -216,7 +216,7 @@ mtrStatus_t MtrInit(mtr_t* self, comm_t *comm, mtrID_t id, uint8_t addr) {
 	return MTR_OK;
 }
 
-mtrStatus_t MtrSimpleIf(mtr_t* self, mtrID_t id, uint32_t *data){
+mtrStatus_t MtrSimpleIf(mtr_t* self, cmdID_t id, uint32_t *data){
 	mtrStatus_t ret;
 
 	if(stat[id].get) {
