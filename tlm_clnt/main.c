@@ -105,20 +105,20 @@ int main(int argc, char **argv) {
 		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT);
 	}
 	
-	mtrStatus = 0xFFFF;	
+	mtrStatus = 0;	
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
-		mtrStatus |= stat & 0x60;
-		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos1[i]);
+		mtrStatus |= (stat & 0x0060);
 	}
 	
 	while(1){
 		while(mtrStatus) {
-			mtrStatus = 0xFFFF;	
+			mtrStatus = 0;	
 			for(i=0;i<NUM_MOTORS;i++){	
 				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
-				mtrStatus |= stat & 0x60;
+				mtrStatus |= stat & 0x0060;
 			}
+//			Log(logMain, INFO, "status %d", mtrStatus);
 		}
 		Log(logMain, INFO, "In position 1");
 		for(i=0;i<NUM_MOTORS;i++){	
@@ -128,19 +128,24 @@ int main(int argc, char **argv) {
 		mtrStatus = 0;	
 		for(i=0;i<NUM_MOTORS;i++){	
 			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
-			mtrStatus |= stat & 0x60;
+			mtrStatus |= stat & 0x0060;
 		}		
 		while(mtrStatus) {
-			mtrStatus = 0xFFFF;	
+			mtrStatus = 0;	
 			for(i=0;i<NUM_MOTORS;i++){	
 				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
-				mtrStatus |= stat & 0x60;
+				mtrStatus |= stat & 0x0060;
 			}
 		}
 		Log(logMain, INFO, "In position 2");
 		for(i=0;i<NUM_MOTORS;i++){	
 			pos = pos1[i];
 			MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT);
+		}
+		mtrStatus = 0;	
+		for(i=0;i<NUM_MOTORS;i++){	
+			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+			mtrStatus |= stat & 0x0060;
 		}
 	};
 
