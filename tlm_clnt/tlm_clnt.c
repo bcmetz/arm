@@ -44,6 +44,7 @@ int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, c
 			self->state = CLIENT_REQ;
 			self->mtrID = mtr;
 			self->cmdID = cmd;
+			self->data = *data;
 			self->state = RUN_CMD;
 			i=0;
 			//Wait for server to update the flag
