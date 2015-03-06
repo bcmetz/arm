@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<tlm>
+	<col name="time">
+		<label>t</label>
+		<ylabel>Unix Epoch[s]</ylabel>
+		<group>1</group>
+		<default>False</default>
+		<xaxis>True</xaxis>
+	</col>
+
+	<col name="az_pos">
+		<label>az_act</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>2</group>
+		<default>True</default>
+	</col>
+	<col name="az_cmd_pos">
+		<label>az_cmd</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>2</group>
+		<default>True</default>
+	</col>
+	<col name="el_pos">
+		<label>el_act</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>3</group>
+		<default>True</default>
+	</col>
+	<col name="el_cmd_pos">
+		<label>el_cmd</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>3</group>
+		<default>True</default>
+	</col>
+	<col name="elb_pos">
+		<label>elb_act</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>4</group>
+		<default>True</default>
+	</col>
+	<col name="elb_cmd_pos">
+		<label>elb_cmd</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>4</group>
+		<default>True</default>
+	</col>
+	<col name="wrst_pos">
+		<label>wrst_act</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>5</group>
+		<default>True</default>
+	</col>
+	<col name="wrst_cmd_pos">
+		<label>az_cmd</label>
+		<ylabel>Position [rad]</ylabel>
+		<group>5</group>
+		<default>True</default>
+	</col>
+
+	<col name="az_vel">
+		<label>az_vel</label>
+		<ylabel>Velocity [rad/s]</ylabel>
+		<group>6</group>
+		<default>True</default>
+	</col>
+	<col name="el_vel">
+		<label>el_vel</label>
+		<ylabel>Velocity [rad/s]</ylabel>
+		<group>6</group>
+		<default>True</default>
+	</col>
+	<col name="elb_vel">
+		<label>elb_vel</label>
+		<ylabel>Velocity [rad/s]</ylabel>
+		<group>6</group>
+		<default>True</default>
+	</col>
+	<col name="wrst_vel">
+		<label>wrst_vel</label>
+		<ylabel>Velocity [rad/s]</ylabel>
+		<group>6</group>
+		<default>True</default>
+	</col>
+	<col name="az_status">
+		<label>stat_az</label>
+		<ylabel>Status Word</ylabel>
+		<group>17</group>
+		<default>True</default>
+		<bitfield>True</bitfield>
+		<offset>0.00</offset>
+		<ytic>0 mtr_en 1 volt_clip 2 pid_en 3 pid_clip 4 int_clip 5 buf1_move 6 buf2_move</ytic>
+		<trig>5</trig>
+	</col>
+	<col name="el_status">
+		<label>stat_el</label>
+		<ylabel>Status Word</ylabel>
+		<group>17</group>
+		<default>True</default>
+		<bitfield>True</bitfield>
+		<offset>0.02</offset>
+		<ytic>0 mtr_en 1 volt_clip 2 pid_en 3 pid_clip 4 int_clip 5 buf1_move 6 buf2_move</ytic>
+		<trig>5</trig>
+	</col>
+	<col name="elb_status">
+		<label>stat_elb</label>
+		<ylabel>Status Word</ylabel>
+		<group>17</group>
+		<default>True</default>
+		<bitfield>True</bitfield>
+		<offset>0.04</offset>
+		<ytic>0 mtr_en 1 volt_clip 2 pid_en 3 pid_clip 4 int_clip 5 buf1_move 6 buf2_move</ytic>
+		<trig>5</trig>
+	</col>
+<col name="wrst_status">
+		<label>stat_wrst</label>
+		<ylabel>Status Word</ylabel>
+		<group>17</group>
+		<default>True</default>
+		<bitfield>True</bitfield>
+		<offset>0.06</offset>
+		<ytic>0 mtr_en 1 volt_clip 2 pid_en 3 pid_clip 4 int_clip 5 buf1_move 6 buf2_move</ytic>
+		<trig>5</trig>
+	</col>
+</tlm>
+
