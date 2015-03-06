@@ -81,6 +81,30 @@
 		<group>6</group>
 		<default>True</default>
 	</col>
+	<col name="az_pid_out">
+		<label>az_out</label>
+		<ylabel>PID Output [V]</ylabel>
+		<group>7</group>
+		<default>True</default>
+	</col>
+	<col name="el_pid_out">
+		<label>el_out</label>
+		<ylabel>PID Output [V]</ylabel>
+		<group>7</group>
+		<default>True</default>
+	</col>
+	<col name="elb_pid_out">
+		<label>elb_out</label>
+		<ylabel>PID Output [V]</ylabel>
+		<group>7</group>
+		<default>True</default>
+	</col>
+	<col name="wrst_pid_out">
+		<label>wrst_out</label>
+		<ylabel>PID Output [V]</ylabel>
+		<group>7</group>
+		<default>True</default>
+	</col>
 	<col name="az_status">
 		<label>stat_az</label>
 		<ylabel>Status Word</ylabel>
