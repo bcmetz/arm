@@ -51,7 +51,7 @@
 		<default>True</default>
 	</col>
 	<col name="wrst_cmd_pos">
-		<label>az_cmd</label>
+		<label>wrst_cmd</label>
 		<ylabel>Position [rad]</ylabel>
 		<group>5</group>
 		<default>True</default>

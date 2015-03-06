@@ -31,16 +31,18 @@ int main(int argc, char **argv) {
 
 	if(argc != 2){
 		printf("usage: %s filename\n", argv[0]);
+		return 1;
 	}
 	fp = fopen(argv[1],"w");
 	if(fp == NULL){
 		printf("error: cannot create file %s\n", argv[1]);
+		return 1;
 	}
 	
 	//Start logging 
 	logMain = LogAlloc();
 	LogInit(logMain,STDOUT,"MAIN"); 
-	Log(logMain, INFO, "Starting simple i/f test");
+	Log(logMain, INFO, "Starting data recording now");
 
 	MtrClntShmat(&mtrCmdIf, key);
 
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
 				cmd_pos[MTR_AZ],cmd_pos[MTR_EL],cmd_pos[MTR_ELB],cmd_pos[MTR_WRST],
 				pid_out[MTR_AZ],pid_out[MTR_EL],pid_out[MTR_ELB],pid_out[MTR_WRST],
 				status[MTR_AZ],status[MTR_EL],status[MTR_ELB],status[MTR_WRST]);
-		usleep(100000); //10Hz
+		usleep(20000); //10Hz
 	}
 
 
