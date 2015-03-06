@@ -9,7 +9,7 @@
 #include "../comm/comm.h"
 #include "../mtr_if/mtr_if.h"
 #include "../mtr_srv/mtr_srv.h"
-#include "tlm_clnt.h"
+#include "mtr_clnt.h"
 
 #define TIMEOUT 100
 
