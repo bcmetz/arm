@@ -14,11 +14,6 @@ log_t selfLog ={
 	.logName = "LOG",
 	.location = STDOUT,
 	.levels = ERROR | WARNING | INFO | DIAG};
-	/*
-	{{'L'},{'O'},{'G'},{0}},
-	{(STDOUT)},
-	{(ERROR | WARNING | INFO | DIAG)}
-};*/
 
 log_t *LogAlloc(void){
 	log_t *pLog;

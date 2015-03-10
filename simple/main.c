@@ -1,145 +1,174 @@
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+
 #include "../log/log.h"
 #include "../comm/comm.h"
 #include "../mtr_if/mtr_if.h"
+#include "../mtr_srv/mtr_srv.h"
+#include "../mtr_clnt/mtr_clnt.h"
 
+#define TIMEOUT 100
 
-int main(int argc, char** argv){
+int main(int argc, char **argv) {
+	int i=0;
+	int pos1[NUM_MOTORS], pos2[NUM_MOTORS];	
+	int pos=0;
+	uint32_t stat;
+	uint32_t mtrStatus=0;
+   key_t key;
+   mtrCmdIf_t *mtrCmdIf;
 	log_t *logMain;
+
+   key = 0x4848;
 	
-	comm_t *comm;
-	commStatus_t comStat;
-
-	int32_t posAz1, posEl1, posElb1;
-	int32_t posAz2, posEl2, posElb2;
-	int32_t velAz;
-	uint32_t statAz, statEl, statElb, status;
-	mtr_t *mtr[3];
-	mtrStatus_t mtrStat;
-
 	//Start logging 
 	logMain = LogAlloc();
 	LogInit(logMain,STDOUT,"MAIN"); 
 	Log(logMain, INFO, "Starting simple i/f test");
 
-	//Open the comm port
-	comm = CommAlloc();
-	comStat = CommInit(comm, 16, 115200, "8N1");
-	if(comStat != COMM_OK) {
-		Log(logMain, ERROR, "Could not open comm port, shutting down");
-		CommFree(comm);
-		LogFree(logMain);
-		exit(1);
+	MtrClntShmat(&mtrCmdIf, key);
+
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_DISABLE, &stat, TIMEOUT);
 	}
-	//Init the motors
-	mtr[0] = (mtr_t*)MtrAlloc();
-	mtr[1] = (mtr_t*)MtrAlloc();
-	mtr[2] = (mtr_t*)MtrAlloc();
 
-	MtrInit(mtr[0], comm, MTR_AZ, 0x08);
-	MtrInit(mtr[1], comm, MTR_EL, 0x68);
-	MtrInit(mtr[2], comm, MTR_ELB, 0x58);
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_DISABLE, &stat, TIMEOUT);
+	}
 
-	//Turn off the PID
-	MtrPidEnable(mtr[0], 0);
-//	MtrPidEnable(mtr[1], 0);
-//	MtrPidEnable(mtr[2], 0);
-	//Disable the motors	
-	MtrEnableMotor(mtr[0], 0);
-//	MtrEnableMotor(mtr[1], 0);
-//	MtrEnableMotor(mtr[2], 0);
-	//Set the correct bus voltage
-	MtrSetBusVoltage(mtr[0], 11000);	
-//	MtrSetBusVoltage(mtr[1], 11000);	
-//	MtrSetBusVoltage(mtr[2], 11000);	
-	//Set the gains
-	MtrSetKp(mtr[0], 60);
-//	MtrSetKp(mtr[1], 300);	
-//	MtrSetKp(mtr[2], 60);	
+	for(i=0;i<NUM_MOTORS;i++){	
+		stat = 11000;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_BUS_VOLTAGE, &stat, TIMEOUT);
+		stat = 11000;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_OUT_LIM, &stat, TIMEOUT);
+		stat = 4;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_GAIN_SHIFT, &stat, TIMEOUT);
+		stat = 10000;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_INT_LIM, &stat, TIMEOUT);
+	}
+		
+	stat = 500;
+	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KP, &stat, TIMEOUT);
+	stat = 1800;
+	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KP, &stat, TIMEOUT);
+	stat = 600;
+	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KP, &stat, TIMEOUT);
+	stat = 500;
+	MtrClntSendCmd(mtrCmdIf, MTR_WRST, SET_PID_KP, &stat, TIMEOUT);
 
-	Log(logMain, INFO, "Place arm in its #1 position, press SPACE to continue");
-	while(fgetc(stdin) != ' ');
-	MtrGetPos(mtr[0], &posAz1);
-//	MtrGetPos(mtr[1], &posEl1);
-//	MtrGetPos(mtr[2], &posElb1);
-	Log(logMain, INFO, "Place arm in its #2 position, press SPACE to continue");
-	while(fgetc(stdin) != ' ');
-	MtrGetPos(mtr[0], &posAz2);
-//	MtrGetPos(mtr[1], &posEl2);
-//	MtrGetPos(mtr[2], &posElb2);
+	stat = 1;
+	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KI, &stat, TIMEOUT);
+	stat = 1;
+	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KI, &stat, TIMEOUT);
+	stat = 1;
+	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KI, &stat, TIMEOUT);
+	stat = 1;
+	MtrClntSendCmd(mtrCmdIf, MTR_WRST, SET_PID_KI, &stat, TIMEOUT);
 
-	MtrSetAccel(mtr[0], 250);	
-//	MtrSetAccel(mtr[1], 250);	
-//	MtrSetAccel(mtr[2], 250);	
-	MtrSetMaxVel(mtr[0], 1000);	
-//	MtrSetMaxVel(mtr[1], 1000);	
-//	MtrSetMaxVel(mtr[2], 1000);	
-	MtrSetVelFinal(mtr[0], 0);	
-//	MtrSetVelFinal(mtr[1], 0);	
-//	MtrSetVelFinal(mtr[2], 0);	
-
-	MtrEnableMotor(mtr[0], 1);
-//	MtrEnableMotor(mtr[1], 1);
-//	MtrEnableMotor(mtr[2], 1);
-	MtrPidEnable(mtr[0], 1);
-//	MtrPidEnable(mtr[1], 1);
-//	MtrPidEnable(mtr[2], 1);
-
-	MtrMoveNow(mtr[0], posAz1);
-//	MtrMoveNow(mtr[1], posEl1);
-//	MtrMoveNow(mtr[2], posElb1);
-
-	MtrGetStatus(mtr[0], &statAz);	
-//	MtrGetStatus(mtr[1], &statEl);	
-//	MtrGetStatus(mtr[2], &statElb);	
-	status = (statAz/* | statEl | statElb*/) & 0x60;
-/*	while(1){
-		MtrGetStatus(mtr[0], &statAz);	
-//		usleep(100000);
-	}	*/
-	while(1) {
-		//Waiting to get to position 1 
-		while(status) {
-			MtrGetStatus(mtr[0], &statAz);	
-//			MtrGetStatus(mtr[1], &statEl);	
-//			MtrGetStatus(mtr[2], &statElb);	
-			status = (statAz /*| statEl | statElb*/) & 0x60;
-		}	
-		Log(logMain, INFO, "In position 1");
-		//We got to pos 1, now go to 2	
-		MtrMoveNow(mtr[0], posAz2);
-//		MtrMoveNow(mtr[1], posEl2);
-//		MtrMoveNow(mtr[2], posElb2);
-		MtrGetStatus(mtr[0], &statAz);	
-//		MtrGetStatus(mtr[1], &statEl);	
-//		MtrGetStatus(mtr[2], &statElb);	
-		status = (statAz /*| statEl | statElb*/) & 0x60;
-		while(status) {
-			MtrGetStatus(mtr[0], &statAz);	
-//			MtrGetStatus(mtr[1], &statEl);	
-//			MtrGetStatus(mtr[2], &statElb);	
-			status = (statAz /*| statEl | statElb*/) & 0x60;
-		}	
-		Log(logMain, INFO, "In position 2");
-		MtrMoveNow(mtr[0], posAz1);
-//		MtrMoveNow(mtr[1], posEl1);
-//		MtrMoveNow(mtr[2], posElb1);
-		MtrGetStatus(mtr[0], &statAz);	
-//		MtrGetStatus(mtr[1], &statEl);	
-//		MtrGetStatus(mtr[2], &statElb);	
-		status = (statAz /*| statEl | statElb*/) & 0x60;
+	for(i=0;i<NUM_MOTORS;i++){	
+		stat = 250;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_ACCEL, &stat, TIMEOUT);
+		stat = 1000;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_MAX_VEL, &stat, TIMEOUT);
+		stat = 0;
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_VEL_FINAL, &stat, TIMEOUT);
 	}
 	
-	Log(logMain, INFO, "Exiting program");
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_BUS_VOLTAGE, &stat, TIMEOUT);
+		Log(logMain,INFO,"mtr[%d].busV = %d",i,stat);
+		MtrClntSendCmd(mtrCmdIf, i,   GET_PID_KP, &stat, TIMEOUT);
+		Log(logMain,INFO,"pid[%d].kp = %d",i,stat);
+		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_ACCEL, &stat, TIMEOUT);
+		Log(logMain,INFO,"pro[%d].accel = %d",i,stat);
+		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_MAX_VEL, &stat, TIMEOUT);
+		Log(logMain,INFO,"pro[%d].maxV = %d",i,stat);
+		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_VEL_FINAL, &stat, TIMEOUT);
+		Log(logMain,INFO,"pro[%d].vf = %d",i,(int)stat);
+	}
+	
+	Log(logMain, INFO, "Place arm in its #1 position, press SPACE to continue");
+	while(fgetc(stdin) != ' ');
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos1[i], TIMEOUT);
+	}
+	for(i=0;i<NUM_MOTORS;i++){
+		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos1[i]);
+	}
+	Log(logMain, INFO, "Place arm in its #2 position, press SPACE to continue");
+	while(fgetc(stdin) != ' ');
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos2[i], TIMEOUT);
+	}
 
-	CommFree(comm);
-	MtrFree(mtr[0]);
-	MtrFree(mtr[1]);
-	MtrFree(mtr[2]);
+
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_ENABLE, &stat, TIMEOUT);
+	}
+
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_ENABLE, &stat, TIMEOUT);
+	}
+	
+	for(i=0;i<NUM_MOTORS;i++){	
+		pos = pos1[i];
+		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT);
+	}
+	
+	mtrStatus = 0;	
+	for(i=0;i<NUM_MOTORS;i++){	
+		MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+		mtrStatus |= (stat & 0x0060);
+		usleep(10000);
+	}
+	
+	while(1){
+		while(mtrStatus) {
+			mtrStatus = 0;	
+			for(i=0;i<NUM_MOTORS;i++){	
+				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+				mtrStatus |= stat & 0x0060;
+				usleep(10000);
+			}
+//			Log(logMain, INFO, "status %d", mtrStatus);
+		}
+		Log(logMain, INFO, "In position 1");
+		for(i=0;i<NUM_MOTORS;i++){	
+			pos = pos2[i];
+			MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT);
+			usleep(10000);
+		}
+		mtrStatus = 0;	
+		for(i=0;i<NUM_MOTORS;i++){	
+			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+			mtrStatus |= stat & 0x0060;
+			usleep(10000);
+		}		
+		while(mtrStatus) {
+			mtrStatus = 0;	
+			for(i=0;i<NUM_MOTORS;i++){	
+				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+				mtrStatus |= stat & 0x0060;
+				usleep(10000);
+			}
+		}
+		Log(logMain, INFO, "In position 2");
+		for(i=0;i<NUM_MOTORS;i++){	
+			pos = pos1[i];
+			MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT);
+			usleep(10000);
+		}
+		mtrStatus = 0;	
+		for(i=0;i<NUM_MOTORS;i++){	
+			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT);
+			mtrStatus |= stat & 0x0060;
+			usleep(10000);
+		}
+	};
+
 	return 0;
 }
-

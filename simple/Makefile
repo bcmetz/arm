@@ -1,12 +1,11 @@
 CC=gcc
 CFLAGS=
 LDFLAGS= -lrt
-SOURCES= $(wildcard mtr_srv/*.c) \
-			$(wildcard mtr_if/*.c ) \
-			$(wildcard log/*.c)\
-		   $(wildcard comm/*.c) 
+SOURCES= $(wildcard ../mtr_clnt/*.c) \
+			$(wildcard ../log/*.c)\
+			$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=arm
+EXECUTABLE=simple
 
 all: $(SOURCES) $(EXECUTABLE)
 
