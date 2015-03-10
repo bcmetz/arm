@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=
 LDFLAGS= -lrt
-SOURCES= $(wildcard mtr_src/*.c) \
+SOURCES= $(wildcard mtr_srv/*.c) \
 			$(wildcard mtr_if/*.c ) \
 			$(wildcard log/*.c)\
 		   $(wildcard comm/*.c) 
@@ -11,7 +11,7 @@ EXECUTABLE=arm
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
 clean:
-	rm $(OBJECTS) arm
+	rm $(OBJECTS) $(EXECUTABLE)
