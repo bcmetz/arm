@@ -95,14 +95,13 @@ int main(int argc, char **argv) {
 	while(fgetc(stdin) != ' ');
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos1[i], TIMEOUT);
-	}
-	for(i=0;i<NUM_MOTORS;i++){
 		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos1[i]);
 	}
 	Log(logMain, INFO, "Place arm in its #2 position, press SPACE to continue");
 	while(fgetc(stdin) != ' ');
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos2[i], TIMEOUT);
+		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos2[i]);
 	}
 
 
@@ -134,7 +133,6 @@ int main(int argc, char **argv) {
 				mtrStatus |= stat & 0x0060;
 				usleep(10000);
 			}
-//			Log(logMain, INFO, "status %d", mtrStatus);
 		}
 		Log(logMain, INFO, "In position 1");
 		for(i=0;i<NUM_MOTORS;i++){	
