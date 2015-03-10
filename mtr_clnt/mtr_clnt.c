@@ -8,7 +8,7 @@
 #include "../log/log.h"
 #include "../comm/comm.h"
 #include "../mtr_if/mtr_if.h"
-#include "../mtr_srv/mtr_srv.h"
+#include "../bin/mtr_srv/mtr_srv.h"
 #include "mtr_clnt.h"
 
 log_t logClnt;

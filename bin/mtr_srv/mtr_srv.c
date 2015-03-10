@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "../log/log.h"
-#include "../comm/comm.h"
-#include "../mtr_if/mtr_if.h"
+#include "../../log/log.h"
+#include "../../comm/comm.h"
+#include "../../mtr_if/mtr_if.h"
 #include "mtr_srv.h"
 
 

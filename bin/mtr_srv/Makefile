@@ -2,9 +2,9 @@ CC=gcc
 CFLAGS=
 LDFLAGS= -lrt
 SOURCES= $(wildcard *.c) \
-			$(wildcard ../mtr_if/*.c ) \
-			$(wildcard ../log/*.c)\
-		   $(wildcard ../comm/*.c) 
+			$(wildcard ../../mtr_if/*.c ) \
+			$(wildcard ../../log/*.c)\
+		   $(wildcard ../../comm/*.c) 
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=mtr_srv
 

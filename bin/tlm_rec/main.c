@@ -6,11 +6,11 @@
 #include <stdarg.h>
 #include <fcntl.h>
 
-#include "../log/log.h"
-#include "../comm/comm.h"
-#include "../mtr_if/mtr_if.h"
+#include "../../log/log.h"
+#include "../../comm/comm.h"
+#include "../../mtr_if/mtr_if.h"
 #include "../mtr_srv/mtr_srv.h"
-#include "../mtr_clnt/mtr_clnt.h"
+#include "../../mtr_clnt/mtr_clnt.h"
 
 #define CLNT_ID 0x1234
 

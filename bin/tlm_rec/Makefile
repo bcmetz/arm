@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=
 LDFLAGS= -lrt
-SOURCES= $(wildcard ../mtr_clnt/*.c) \
-			$(wildcard ../log/*.c)\
+SOURCES= $(wildcard ../../mtr_clnt/*.c) \
+			$(wildcard ../../log/*.c)\
 			$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=tlm_rec
