@@ -12,7 +12,7 @@
 #include "../mtr_srv/mtr_srv.h"
 #include "../mtr_clnt/mtr_clnt.h"
 
-
+#define CLNT_ID 0x1234
 
 int main(int argc, char **argv) {
 	int i;
@@ -33,11 +33,6 @@ int main(int argc, char **argv) {
 		printf("usage: %s filename\n", argv[0]);
 		return 1;
 	}
-	fp = fopen(argv[1],"w");
-	if(fp == NULL){
-		printf("error: cannot create file %s\n", argv[1]);
-		return 1;
-	}
 	
 	//Start logging 
 	logMain = LogAlloc();
@@ -45,6 +40,12 @@ int main(int argc, char **argv) {
 	Log(logMain, INFO, "Starting data recording now");
 
 	MtrClntShmat(&mtrCmdIf, key);
+	
+	fp = fopen(argv[1],"w");
+	if(fp == NULL){
+		printf("error: cannot create file %s\n", argv[1]);
+		return 1;
+	}
 
 	//print header
 	fprintf(fp,"time,az_pos,el_pos,elb_pos,wrst_pos,az_vel,el_vel,elb_vel,wrst_vel,"
@@ -55,11 +56,11 @@ int main(int argc, char **argv) {
 		clock_gettime(CLOCK_REALTIME, &ts);
 		time = (double)(ts.tv_sec + ts.tv_nsec / 1000000000.0);
 		for(i=0;i<NUM_MOTORS;i++){
-			MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS,     &pos[i], TIMEOUT);
-			MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_VEL,     &vel[i], TIMEOUT);
-			MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_CMD_POS, &cmd_pos[i], TIMEOUT);
-			MtrClntSendCmd(mtrCmdIf, i,   GET_PID_OUTPUT,  &pid_out[i], TIMEOUT);
-			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS,      &status[i], TIMEOUT);
+			MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS,     &pos[i], TIMEOUT,CLNT_ID);
+			MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_VEL,     &vel[i], TIMEOUT,CLNT_ID);
+			MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_CMD_POS, &cmd_pos[i], TIMEOUT,CLNT_ID);
+			MtrClntSendCmd(mtrCmdIf, i,   GET_PID_OUTPUT,  &pid_out[i], TIMEOUT,CLNT_ID);
+			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS,      &status[i], TIMEOUT,CLNT_ID);
 		}
 		fprintf(fp,"%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
 				time, pos[MTR_AZ],pos[MTR_EL],pos[MTR_ELB],pos[MTR_WRST],
