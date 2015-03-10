@@ -1,3 +1,5 @@
+//Command to go from urdf to collada dae file
+rosrun collada_urdf urdf_to_collada my_robot.urdf my_robot.dae
 
 //Command to see linking of dae file
 openrave-robot.py arm_4dof.dae --info links
