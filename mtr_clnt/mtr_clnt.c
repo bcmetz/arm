@@ -45,7 +45,7 @@ int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, c
 			self->reqID = clntID;
 			self->state = CLIENT_REQ;
 			while(self->state < SRV_GRANT){
-				usleep(100);
+				usleep(10);
 				i++;
 				if(i > 100*timeout) {
 					Log(&logClnt, WARNING, "Timed out waiting for SRV_GRANT");
@@ -60,7 +60,7 @@ int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, c
 				i=0;
 				//Wait for server to update the flag
 				while(self->state < DATA_READY) {
-					usleep(100);
+					usleep(10);
 					i++;
 					if(i > 100*timeout) {
 						Log(&logClnt, WARNING, "Timed out waiting for DATA_READY");
@@ -84,7 +84,7 @@ int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, c
 		}
 		
 		i++;
-		usleep(100);
+		usleep(10);
 	}
 
 	Log(&logClnt, WARNING, "Timed out waiting for IDLE state");
