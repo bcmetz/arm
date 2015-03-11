@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "../log/log.h"
-#include "../comm/comm.h"
-#include "../mtr_if/mtr_if.h"
+#include "../../log/log.h"
+#include "../../comm/comm.h"
+#include "../../mtr_if/mtr_if.h"
 #include "mtr_srv.h"
 
 
@@ -74,31 +74,37 @@ int main(int argc, char **argv) {
 
 	timeout = TIMEOUT;
 	while(1) {
-		if(mtrCmdIf->state == RUN_CMD) {
-			mtrCmdIf->state = BUSY;
-			Log(logMain, DIAG, "Transitioned to BUSY");
-			if(mtrCmdIf->mtrID <= MTR_WRST){
-				Log(logMain, INFO, "mtrID:%d cmdID:%d data:%d",mtrCmdIf->mtrID, mtrCmdIf->cmdID, mtrCmdIf->data);
-				mtrStat = MtrSimpleIf(mtr[mtrCmdIf->mtrID],\
-						mtrCmdIf->cmdID,&(mtrCmdIf->data));
-				if(mtrStat == MTR_OK) {
-					mtrCmdIf->state = DATA_READY;
+		if(mtrCmdIf->state == CLIENT_REQ){
+			mtrCmdIf->grantID = mtrCmdIf->reqID;
+			mtrCmdIf->state = SRV_GRANT;
+			Log(logMain, DIAG, "Grant issued to %d", mtrCmdIf->grantID);
+			if(mtrCmdIf->state == RUN_CMD) {
+				mtrCmdIf->state = BUSY;
+				Log(logMain, DIAG, "Transitioned to BUSY");
+				if(mtrCmdIf->mtrID <= MTR_WRST){
+					Log(logMain, INFO, "mtrID:%d cmdID:%d data:%d",mtrCmdIf->mtrID, mtrCmdIf->cmdID, mtrCmdIf->data);
+					mtrStat = MtrSimpleIf(mtr[mtrCmdIf->mtrID],\
+							mtrCmdIf->cmdID,&(mtrCmdIf->data));
+					if(mtrStat == MTR_OK) {
+						mtrCmdIf->state = DATA_READY;
+					}
+					else{
+						mtrCmdIf->cmdID = -1;
+						mtrCmdIf->data = mtrStat;
+						mtrCmdIf->state = DATA_READY;
+					}
 				}
 				else{
 					mtrCmdIf->cmdID = -1;
-					mtrCmdIf->data = mtrStat;
+					mtrCmdIf->data = 0;
 					mtrCmdIf->state = DATA_READY;
 				}
+				Log(logMain, DIAG, "Transitioned to DATA_READY");
 			}
-			else{
-				mtrCmdIf->cmdID = -1;
-				mtrCmdIf->data = 0;
-				mtrCmdIf->state = DATA_READY;
-			}
-			Log(logMain, DIAG, "Transitioned to DATA_READY");
 		}
-		//The process has 1ms to read its data before timeout	
-		if(mtrCmdIf->state & (DATA_READY | CLIENT_REQ)){
+		//The client process has 1ms to move the server on to the 
+		//	next state before timeout	
+		if(mtrCmdIf->state & (DATA_READY | CLIENT_REQ | SRV_GRANT)){
 			timeout--;
 			if(timeout == 0){
 				Log(logMain,WARNING,"Timeout reached, a process failed to meet timing, state = %d", mtrCmdIf->state);

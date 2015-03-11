@@ -14,6 +14,6 @@ int MtrClntShmat(mtrCmdIf_t** self, key_t key);
 //In 4: data to send/recv
 //In 5: timeout in ms before returning failure
 //ret:  0=OK, -1 = Timeout
-int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, const uint32_t timeout); 
+int MtrClntSendCmd(mtrCmdIf_t* self, mtrID_t mtr, cmdID_t cmd, uint32_t *data, const uint32_t timeout, const uint32_t clntID); 
 
 #endif
