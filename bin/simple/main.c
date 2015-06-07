@@ -51,10 +51,13 @@ int main(int argc, char **argv) {
 		stat = 10000;
 		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_INT_LIM, &stat, TIMEOUT,CLNTID);
 	}
+	
+	stat = -1;
+	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_MTR_ENC_SIGN, &stat, TIMEOUT,CLNTID);
 		
 	stat = 500;
 	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KP, &stat, TIMEOUT,CLNTID);
-	stat = 1800;
+	stat = 1000;
 	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KP, &stat, TIMEOUT,CLNTID);
 	stat = 600;
 	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KP, &stat, TIMEOUT,CLNTID);
@@ -63,7 +66,7 @@ int main(int argc, char **argv) {
 
 	stat = 1;
 	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KI, &stat, TIMEOUT,CLNTID);
-	stat = 1;
+	stat = 0;
 	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KI, &stat, TIMEOUT,CLNTID);
 	stat = 1;
 	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KI, &stat, TIMEOUT,CLNTID);
@@ -78,6 +81,11 @@ int main(int argc, char **argv) {
 		stat = 0;
 		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_VEL_FINAL, &stat, TIMEOUT,CLNTID);
 	}
+
+	stat = 6000;
+	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PRO_ACCEL, &stat, TIMEOUT,CLNTID);
+	stat = 6000;
+	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PRO_MAX_VEL, &stat, TIMEOUT,CLNTID);
 	
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_BUS_VOLTAGE, &stat, TIMEOUT,CLNTID);
@@ -110,15 +118,19 @@ int main(int argc, char **argv) {
 		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_ENABLE, &stat, TIMEOUT,CLNTID);
 	}
 
+
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_ENABLE, &stat, TIMEOUT,CLNTID);
 	}
 	
+	Log(logMain, INFO, "PID enabled, press SPACE to start motion");
+	while(fgetc(stdin) != ' ');
+
 	for(i=0;i<NUM_MOTORS;i++){	
 		pos = pos1[i];
 		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT,CLNTID);
 	}
-	
+
 	mtrStatus = 0;	
 	for(i=0;i<NUM_MOTORS;i++){	
 		MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
