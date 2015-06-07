@@ -66,8 +66,8 @@ int main(int argc, char **argv) {
 	mtr[3] = (mtr_t*)MtrAlloc();
 
 	MtrInit(mtr[0], comm, MTR_AZ, 0x08);
-	MtrInit(mtr[1], comm, MTR_EL, 0x18);
-	MtrInit(mtr[2], comm, MTR_ELB, 0x48);
+	MtrInit(mtr[1], comm, MTR_EL, 0x48);
+	MtrInit(mtr[2], comm, MTR_ELB, 0x18);
 	MtrInit(mtr[3], comm, MTR_WRST, 0x38);
 
 	Log(logMain, INFO, "Motor server ready");
