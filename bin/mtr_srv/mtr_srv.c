@@ -1,9 +1,8 @@
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
+#include <zmq.h>
 
 #include "../../log/log.h"
 #include "../../comm/comm.h"
@@ -13,11 +12,6 @@
 
 
 int main(int argc, char **argv) {
-	key_t keyCmd, keyTlm;	
-
-	int timeout;	
-	int shmCmdID, shmTlmID;
-
 	log_t *logMain;
 
 	comm_t *comm;
@@ -26,11 +20,13 @@ int main(int argc, char **argv) {
 	mtr_t *mtr[4];
 	mtrStatus_t mtrStat;
 
-	keyCmd = 0x4848;
-	keyTlm = 0x8888;
-
-	mtrCmdIf_t *mtrCmdIf;
-	mtrTlmIf_t *mtrTlmIf;
+	mtrCmdRcv_t mtrCmdRcv;
+	mtrParms_t mtrParms;
+	
+	void *context = zmq_ctx_new ();
+	void *responder = zmq_socket (context, ZMQ_REP);
+	int rc = zmq_bind (responder, "tcp://*:5555");
+	assert (rc == 0);
 	
 	logMain = LogAlloc();
 	LogInit(logMain,STDOUT,"SERV"); 
@@ -46,18 +42,6 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if ((shmCmdID = shmget(keyCmd, sizeof(mtrCmdIf_t), IPC_CREAT | 0666)) < 0){
-		Log(logMain, ERROR, "Could not get shared memory ID");
-		exit(1);
-	}
-
-	if ((mtrCmdIf = shmat(shmCmdID, NULL, 0)) == (mtrCmdIf_t *) -1){
-		Log(logMain, ERROR, "Could not allocate shared memory");
-		exit(1);
-	}
-
-	mtrCmdIf->state = IDLE;
-
 	Log(logMain, INFO, "Initializing motors");	
 	//Init the motors
 	mtr[0] = (mtr_t*)MtrAlloc();
@@ -70,55 +54,71 @@ int main(int argc, char **argv) {
 	MtrInit(mtr[2], comm, MTR_ELB, 0x18);
 	MtrInit(mtr[3], comm, MTR_WRST, 0x38);
 
+	mtrParms.gearRatio[MTR_AZ] = 141;
+	mtrParms.gearRatio[MTR_EL] = 26;
+	mtrParms.gearRatio[MTR_ELB] = 141;
+	mtrParms.gearRatio[MTR_WRST] = 141;
+
+	mtrParms.ctsPerRad[MTR_AZ] = 14/2/M_PI;
+	mtrParms.ctsPerRad[MTR_EL] = 2000/2/M_PI;
+	mtrParms.ctsPerRad[MTR_ELB] = 14/2/M_PI;
+	mtrParms.ctsPerRad[MTR_WRST] = 14/2/M_PI;
+
 	Log(logMain, INFO, "Motor server ready");
 
-	timeout = TIMEOUT;
 	while(1) {
-		if(mtrCmdIf->state == CLIENT_REQ){
-			mtrCmdIf->grantID = mtrCmdIf->reqID;
-			mtrCmdIf->state = SRV_GRANT;
-			Log(logMain, DIAG, "Grant issued to %d", mtrCmdIf->grantID);
-		}
-		else if(mtrCmdIf->state == RUN_CMD) {
-			mtrCmdIf->state = BUSY;
-			Log(logMain, DIAG, "Transitioned to BUSY");
-			if(mtrCmdIf->mtrID <= MTR_WRST){
-				Log(logMain, INFO, "mtrID:%d cmdID:%d data:%d",mtrCmdIf->mtrID, mtrCmdIf->cmdID, mtrCmdIf->data);
-				mtrStat = MtrSimpleIf(mtr[mtrCmdIf->mtrID],\
-						mtrCmdIf->cmdID,&(mtrCmdIf->data));
-				if(mtrStat == MTR_OK) {
-					mtrCmdIf->state = DATA_READY;
-				}
-				else{
-					mtrCmdIf->cmdID = -1;
-					mtrCmdIf->data = mtrStat;
-					mtrCmdIf->state = DATA_READY;
-				}
-			}
-			else{
-				mtrCmdIf->cmdID = -1;
-				mtrCmdIf->data = 0;
-				mtrCmdIf->state = DATA_READY;
-			}
-			Log(logMain, DIAG, "Transitioned to DATA_READY");
-		}
 		
-		//The client process has 1ms to move the server on to the 
-		//	next state before timeout	
-		if(mtrCmdIf->state & (DATA_READY | CLIENT_REQ | SRV_GRANT)){
-			timeout--;
-			if(timeout == 0){
-				Log(logMain,WARNING,"Timeout reached, a process failed to meet timing, state = %d", mtrCmdIf->state);
-				mtrCmdIf->state = IDLE;
-				timeout = TIMEOUT;
+		zmq_recv (responder, &mtrCmdRcv, sizeof(mtrCmdRcv_t), 0);
+		Log(logMain, INFO, "Received new command");
+		switch(mtrCmdRcv.cmdType){
+			case MOTION: {
+				for(i=0; i<NUM_MTRS; i++){
+					if(mtrCmdRcv.enabled[i]){
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.pos *\
+							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						Log(logMain, DIAG, "Pos: %f [rad]  %f [cts]",
+							mtrCmdRcv.move.pos, mtrCmdRcv.cmdData[i]);
+						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_POS_FINAL,\
+							&mtrCmdRcv.cmdData[i]);
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.velMax *\
+							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						Log(logMain, DIAG, "Vel: %f [rad/s]  %f [cts/s]",
+							mtrCmdRcv.move.velMax, mtrCmdRcv.cmdData[i]);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_MAX_VEL,\
+							&mtrCmdRcv.cmdData[i]);
+
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.velFinal *\
+							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_VEL_FINAL,\
+							&mtrCmdRcv.cmdData[i]);
+
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.accel *\
+							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_ACCEL,\
+							&mtrCmdRcv.cmdData[i]);
+					}
+				} 
+				for(i=0; i<NUM_MTRS; i++){
+					if(mtrCmdRcv.enabled[i] && mtrCmdRep.reply[i] == MTR_OK){
+						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_START,\
+							&mtrCmdRcv.cmdData[i]);
+					}
+				} break;	
+			}
+			case PARAMETER: {
+				for(i=0; i<NUM_MTRS; i++){
+					if(mtrCmdRcv.enabled[i]) {
+						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], mtrCmdRcv.cmdID[i],\
+							&mtrCmdRcv.cmdData[i]);
+					}
+				} break;
+			}
+			default: {
+				Log(logMain, ERROR, "Unknown command type %d", mtrCmdRcv.cmdType);
 			}
 		}
-		else{
-			timeout = TIMEOUT;
-		} 
-		usleep(10);
+		zmq_send (responder, &mtrCmdRep, sizeof(mtrCmdRep_t), 0);
 	}	
 
-	shmdt(mtrCmdIf);
 	return 0;
 }

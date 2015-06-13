@@ -32,7 +32,7 @@ typedef struct {
 } mtrCmdRcv_t;
 
 typedef struct {
-	uint32_t reply[NUM_MTRS];
+	mtrStatus_t reply[NUM_MTRS];
 } mtrCmdRep_t;
 
 
