@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=
-LDFLAGS= -lrt
+LDFLAGS= -lrt -lzmq
 SOURCES= $(wildcard *.c) \
 			$(wildcard ../../mtr_if/*.c ) \
 			$(wildcard ../../log/*.c)\

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <math.h>
 #include <zmq.h>
 
 #include "../../log/log.h"
@@ -12,6 +13,7 @@
 
 
 int main(int argc, char **argv) {
+	int i;
 	log_t *logMain;
 
 	comm_t *comm;
@@ -21,6 +23,7 @@ int main(int argc, char **argv) {
 	mtrStatus_t mtrStat;
 
 	mtrCmdRcv_t mtrCmdRcv;
+	mtrCmdRep_t mtrCmdRep;
 	mtrParms_t mtrParms;
 	
 	void *context = zmq_ctx_new ();
@@ -74,27 +77,27 @@ int main(int argc, char **argv) {
 			case MOTION: {
 				for(i=0; i<NUM_MTRS; i++){
 					if(mtrCmdRcv.enabled[i]){
-						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.pos *\
-							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move[i].pos * \
+							mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
 						Log(logMain, DIAG, "Pos: %f [rad]  %f [cts]",
-							mtrCmdRcv.move.pos, mtrCmdRcv.cmdData[i]);
-						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_POS_FINAL,\
+							mtrCmdRcv.move[i].pos, mtrCmdRcv.cmdData[i]);
+						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_POS_FINAL,
 							&mtrCmdRcv.cmdData[i]);
-						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.velMax *\
-							mtrParms.gearRatio * mtrParms.ctsPerRad);
+						mtrCmdRcv.cmdData[i] = (uint32_t)(mtrCmdRcv.move[i].velMax * \
+							mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
 						Log(logMain, DIAG, "Vel: %f [rad/s]  %f [cts/s]",
-							mtrCmdRcv.move.velMax, mtrCmdRcv.cmdData[i]);
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_MAX_VEL,\
+							mtrCmdRcv.move[i].velMax, mtrCmdRcv.cmdData[i]);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_MAX_VEL,
 							&mtrCmdRcv.cmdData[i]);
 
-						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.velFinal *\
-							mtrParms.gearRatio * mtrParms.ctsPerRad);
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_VEL_FINAL,\
+						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move[i].velFinal * \
+							mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_VEL_FINAL,
 							&mtrCmdRcv.cmdData[i]);
 
-						mtrCmdRcv.cmdData[i] = (int32_t)(mtrCmdRcv.move.accel *\
-							mtrParms.gearRatio * mtrParms.ctsPerRad);
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_ACCEL,\
+						mtrCmdRcv.cmdData[i] = (uint32_t)(mtrCmdRcv.move[i].accel * \
+							mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
+						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_ACCEL,
 							&mtrCmdRcv.cmdData[i]);
 					}
 				} 

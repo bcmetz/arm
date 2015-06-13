@@ -24,7 +24,7 @@ typedef struct {
 } mtrMove_t;
 
 typedef struct {
-	mtrCmdType cmdType;			 //Is this a move or a parameter
+	mtrCmdType_t cmdType;			 //Is this a move or a parameter
 	uint8_t	enabled[NUM_MTRS]; //If true that joints command/move will be processed
 	mtrMove_t move[NUM_MTRS];   //motion details in radians
 	cmdID_t cmdID[NUM_MTRS];	 //command ID for each joint
