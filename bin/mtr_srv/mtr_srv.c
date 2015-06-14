@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 	mtr_t *mtr[4];
 	mtrStatus_t mtrStat;
 
-	mtrCmdRcv_t mtrCmdRcv;
+	mtrCmdReq_t mtrCmdReq;
 	mtrCmdRep_t mtrCmdRep;
 	
 	void *context = zmq_ctx_new ();
@@ -101,61 +101,10 @@ int main(int argc, char **argv) {
 	Log(logMain, INFO, "Motor server ready");
 
 	while(1) {
-		
-		zmq_recv (responder, &mtrCmdRcv, sizeof(mtrCmdRcv_t), 0);
+		zmq_recv (responder, &mtrCmdReq, sizeof(mtrCmdReq_t), 0);
 		Log(logMain, INFO, "Received new command");
-		switch(mtrCmdRcv.cmdType){
-			case MOTION: {
-				for(i=0; i<NUM_MTRS; i++){
-					if(mtrCmdRcv.enabled[i]){
-						mtrCmdRcv.cmdData[i] = mtrCmdRcv.move[i].pos;
-						Log(logMain, DIAG, "Pos: %d [cts]", mtrCmdRcv.cmdData[i]);
-						mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_POS_FINAL,
-							&mtrCmdRcv.cmdData[i]);
-						mtrCmdRcv.cmdData[i] = mtrCmdRcv.move[i].velMax;
-						Log(logMain, DIAG, "Vel: %d [cts/s]", mtrCmdRcv.cmdData[i]);
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_MAX_VEL,
-							&mtrCmdRcv.cmdData[i]);
-
-						mtrCmdRcv.cmdData[i] = mtrCmdRcv.move[i].velFinal;
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_VEL_FINAL,
-							&mtrCmdRcv.cmdData[i]);
-
-						mtrCmdRcv.cmdData[i] = mtrCmdRcv.move[i].accel;
-						mtrCmdRep.reply[i] |= MtrSimpleIf(mtr[i], SET_PRO_ACCEL,
-							&mtrCmdRcv.cmdData[i]);
-					}
-				} 
-				for(i=0; i<NUM_MTRS; i++){
-					if(mtrCmdRcv.enabled[i] && mtrCmdRep.reply[i] == MTR_OK){
-						if(mtrCmdRcv.move[i].moveType == BUFFER){
-							mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_LOAD, &mtrCmdRcv.cmdData[i]);
-							if(mtrCmdRcv.cmdData[i] == MTR_OK)
-								mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_START,&mtrCmdRcv.cmdData[i]);
-						}
-						else if(mtrCmdRcv.move[i].moveType == INTERRUPT){
-							mtrCmdRcv.cmdData[i] = mtrCmdRcv.move[i].pos;
-							mtrCmdRep.reply[i] = MtrSimpleIf(mtr[i], SET_PRO_LOAD_AND_GO, &mtrCmdRcv.cmdData[i]);
-						}
-						else {
-							Log(logMain, ERROR, "Unknown move type %d", mtrCmdRcv.move[i].moveType);
-						}
-					}
-				} break;	
-			}
-			case PARAMETER: {
-				for(i=0; i<NUM_MTRS; i++){
-					if(mtrCmdRcv.enabled[i]) {
-						MtrSimpleIf(mtr[i], mtrCmdRcv.cmdID[i],\
-							&mtrCmdRcv.cmdData[i]);
-						mtrCmdRep.reply[i] = mtrCmdRcv.cmdData[i];
-					}
-				} break;
-			}
-			default: {
-				Log(logMain, ERROR, "Unknown command type %d", mtrCmdRcv.cmdType);
-			}
-		}
+		mtrCmdRep.ret = MtrSimpleIf(mtr[mtrCmdReq.mtrID], mtrCmdReq.cmdID, &mtrCmdReq.data);
+		mtrCmdRep.data = mtrCmdReq.data;
 		zmq_send (responder, &mtrCmdRep, sizeof(mtrCmdRep_t), 0);
 	}	
 
