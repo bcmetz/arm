@@ -2,25 +2,28 @@
 #ifndef MTR_SRV_H_
 #define MTR_SRV_H_
 
-#define NUM_MTRS 4
-#define TIMEOUT 100	//100 * 10us = 1ms
+#define NUM_MTRS NUM_MOTORS
 
-typedef struct {
-	double gearRatio[NUM_MTRS];
-	double ctsPerRad[NUM_MTRS];
-} mtrParms_t;
+#define TRUE 1
+#define FALSE 0
+
 
 typedef enum {
 	MOTION=0,
 	PARAMETER
 } mtrCmdType_t;
 
+typedef enum {
+	BUFFER=0,
+	INTERRUPT
+} mtrMoveType_t;
 //The units are in radians and will be converted to encoder counts here out
 typedef struct {
-	double pos;
-	double velMax;
-	double velFinal;
-	double accel;
+	int32_t  pos;
+	uint32_t velMax;
+	int32_t  velFinal;
+	uint32_t accel;
+	mtrMoveType_t moveType;
 } mtrMove_t;
 
 typedef struct {
