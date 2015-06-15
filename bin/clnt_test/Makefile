@@ -1,8 +1,7 @@
 CC=gcc
 CFLAGS=
 LDFLAGS= -lrt -lzmq
-SOURCES= $(wildcard ../../mtr_clnt/*.c) \
-	 $(wildcard ../../log/*.c)\
+SOURCES= $(wildcard ../../log/*.c)\
 	 $(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=clnt_test

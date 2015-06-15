@@ -4,11 +4,11 @@
 #include <string.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include "log.h"						//Logging methods
 
 #ifdef _OS_X_
-#include <time.h>
 #include <mach/mach_time.h>
 #define CLOCK_REALTIME 0
 #define ORWL_NANO (+1.0E-9)
@@ -32,9 +32,6 @@ int clock_gettime(uint32_t i, struct timespec* t) {
 
   return 1;
 }
-
-#else 
-#include <time.h>
 #endif
 
 
