@@ -1,0 +1,15 @@
+CC=gcc
+CFLAGS= -D _OS_X_
+LDFLAGS= -L/opt/local/lib -lzmq
+SOURCES= $(wildcard ../../log/*.c)\
+	 $(wildcard *.c)
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=clnt_test
+
+all: $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+clean:
+	rm $(OBJECTS) $(EXECUTABLE)
