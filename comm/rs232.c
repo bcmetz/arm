@@ -47,7 +47,7 @@ int Cport[38],
 struct termios new_port_settings,
        old_port_settings[38];
 
-char comports[38][16]={"/dev/ttyS0","/dev/ttyS1","/dev/ttyS2","/dev/ttyS3","/dev/ttyS4","/dev/ttyS5",
+char comports[39][30]={"/dev/tty.usbserial-FTGCX806", "/dev/ttyS0","/dev/ttyS1","/dev/ttyS2","/dev/ttyS3","/dev/ttyS4","/dev/ttyS5",
                        "/dev/ttyS6","/dev/ttyS7","/dev/ttyS8","/dev/ttyS9","/dev/ttyS10","/dev/ttyS11",
                        "/dev/ttyS12","/dev/ttyS13","/dev/ttyS14","/dev/ttyS15","/dev/ttyUSB0",
                        "/dev/ttyUSB1","/dev/ttyUSB2","/dev/ttyUSB3","/dev/ttyUSB4","/dev/ttyUSB5",
@@ -105,7 +105,8 @@ int RS232_OpenComport(int comport_number, int baudrate, const char *mode)
                    break;
     case  230400 : baudr = B230400;
                    break;
-    case  460800 : baudr = B460800;
+// OSX Does not support these baudrates
+/*    case  460800 : baudr = B460800;
                    break;
     case  500000 : baudr = B500000;
                    break;
@@ -128,7 +129,7 @@ int RS232_OpenComport(int comport_number, int baudrate, const char *mode)
     case 3500000 : baudr = B3500000;
                    break;
     case 4000000 : baudr = B4000000;
-                   break;
+                   break;*/
     default      : printf("invalid baudrate\n");
                    return(1);
                    break;

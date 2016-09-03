@@ -13,7 +13,7 @@
 int ConfigMotors(mtr_t** mtr){
 
 	int i=0;
-	uint32_t data;
+	uint32_t data=0;
 
 	for(i=0;i<NUM_MTRS;i++){
   		MtrSimpleIf(mtr[i], SET_PID_DISABLE, &data);
@@ -21,35 +21,39 @@ int ConfigMotors(mtr_t** mtr){
 	}
 	
 	for(i=0;i<NUM_MTRS;i++){
-		data = 11000;
+		data = 24000;
   		MtrSimpleIf(mtr[i], SET_MTR_BUS_VOLTAGE, &data);
-		data = 11000;
+		data = 24000;
+  		MtrSimpleIf(mtr[i], SET_MTR_VOLT_LIM, &data);
+		data = 24000;
   		MtrSimpleIf(mtr[i], SET_PID_OUT_LIM, &data);
-		data = 4;
-  		MtrSimpleIf(mtr[i], SET_PID_GAIN_SHIFT, &data);
 		data = 10000;
   		MtrSimpleIf(mtr[i], SET_PID_INT_LIM, &data);
 		data = -1;
   		MtrSimpleIf(mtr[i], SET_MTR_ENC_SIGN, &data);
+		data = 0;
+  		MtrSimpleIf(mtr[i], SET_MTR_POS, &data);
 	}
 
-	data = 500;
+/*	data = 500;
 	MtrSimpleIf(mtr[MTR_AZ], SET_PID_KP, &data);
 	data = 1000;
 	MtrSimpleIf(mtr[MTR_EL], SET_PID_KP, &data);
 	data = 600;
 	MtrSimpleIf(mtr[MTR_ELB], SET_PID_KP, &data);
-	data = 500;
-	MtrSimpleIf(mtr[MTR_WRST], SET_PID_KP, &data);
-	
-	data = 1;
-	MtrSimpleIf(mtr[MTR_AZ], SET_PID_KI, &data);
+	*/
+
+//SET GAINS ON THE CLIENT SIDE
+/*
+	data = 3;
+	MtrSimpleIf(mtr[0], SET_PID_GAIN_SHIFT, &data);
+	data = 100;
+	MtrSimpleIf(mtr[0], SET_PID_KP, &data);
 	data = 0;
-	MtrSimpleIf(mtr[MTR_EL], SET_PID_KI, &data);
-	data = 1;
-	MtrSimpleIf(mtr[MTR_ELB], SET_PID_KI, &data);
-	data = 1;
-	MtrSimpleIf(mtr[MTR_WRST], SET_PID_KI, &data);
+	MtrSimpleIf(mtr[0], SET_PID_KI, &data);
+*/
+	return 0;
+
 }
 
 int main(int argc, char **argv) {
@@ -59,7 +63,7 @@ int main(int argc, char **argv) {
 	comm_t *comm;
 	commStatus_t comStat;
 	
-	mtr_t *mtr[4];
+	mtr_t *mtr[1];
 	mtrStatus_t mtrStat;
 
 	mtrCmdReq_t mtrCmdReq;
@@ -76,7 +80,7 @@ int main(int argc, char **argv) {
 
 	//Open the comm port
 	comm = CommAlloc();
-	comStat = CommInit(comm, 16, 115200, "8N1");
+	comStat = CommInit(comm, 0, 115200, "8N1");
 	if(comStat != COMM_OK) {
 		Log(logMain, ERROR, "Could not open comm port, shutting down");
 		CommFree(comm);
@@ -84,18 +88,22 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	Log(logMain, INFO, "Initializing motors");	
+	Log(logMain, INFO, "Allocating motors");	
 	//Init the motors
 	mtr[0] = (mtr_t*)MtrAlloc();
-	mtr[1] = (mtr_t*)MtrAlloc();
-	mtr[2] = (mtr_t*)MtrAlloc();
-	mtr[3] = (mtr_t*)MtrAlloc();
+//	mtr[1] = (mtr_t*)MtrAlloc();
+//	mtr[2] = (mtr_t*)MtrAlloc();
+//	mtr[3] = (mtr_t*)MtrAlloc();
 
-	MtrInit(mtr[0], comm, MTR_AZ, 0x08);
-	MtrInit(mtr[1], comm, MTR_EL, 0x48);
-	MtrInit(mtr[2], comm, MTR_ELB, 0x18);
-	MtrInit(mtr[3], comm, MTR_WRST, 0x38);
+	Log(logMain, INFO, "Initializing motors");	
+	MtrInit(mtr[0], comm, MTR_WRST, 0x60);
 
+//	MtrInit(mtr[0], comm, MTR_AZ, 0x08);
+//	MtrInit(mtr[1], comm, MTR_EL, 0x48);
+//	MtrInit(mtr[2], comm, MTR_ELB, 0x18);
+//	MtrInit(mtr[3], comm, MTR_WRST, 0x38);
+
+	Log(logMain, INFO, "Configuring motors");	
 	ConfigMotors(mtr);
 
 	Log(logMain, INFO, "Motor server ready");

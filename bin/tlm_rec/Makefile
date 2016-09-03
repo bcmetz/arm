@@ -1,9 +1,11 @@
 CC=gcc
-CFLAGS=
-LDFLAGS= -lrt
-SOURCES= $(wildcard ../../mtr_clnt/*.c) \
-			$(wildcard ../../log/*.c)\
-			$(wildcard *.c)
+CFLAGS= -O0 -D _OS_X_ -D__linux__ -I /opt/local/include
+LDFLAGS= -L/opt/local/lib -lzmq
+
+SOURCES= $(wildcard *.c)\
+				 $(wildcard ../../mtr_clnt/*.c)\
+				 $(wildcard ../../log/*.c) 
+
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=tlm_rec
 

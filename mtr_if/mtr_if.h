@@ -7,10 +7,10 @@
 #define MTR_TX_MESSAGE 8
 #define MTR_RX_MESSAGE 6
 typedef enum {
-	MTR_AZ=0,
-	MTR_EL,
-	MTR_ELB,
-	MTR_WRST,
+//	MTR_AZ=0,
+//	MTR_EL,
+//	MTR_ELB,
+	MTR_WRST=0,
 
 	NUM_MOTORS
 } mtrID_t;
@@ -48,6 +48,8 @@ typedef enum {
 	SET_MTR_VOLT_LIM,
 	SET_MTR_VEL_LIM,
 	SET_MTR_ENC_SIGN,
+	SET_MTR_HALL_WIRING,
+	SET_MTR_TYPE,
 	SET_MTR_ENABLE,
 	SET_MTR_DISABLE,
 	GET_MTR_POS,
@@ -57,6 +59,8 @@ typedef enum {
 	GET_MTR_VOLT_LIM,
 	GET_MTR_VEL_LIM,
 	GET_MTR_ENC_SIGN,
+	GET_MTR_HALL_WIRING,
+	GET_MTR_TYPE,
 	SET_PID_KP,
 	SET_PID_KI,
 	SET_PID_KD,
@@ -70,8 +74,8 @@ typedef enum {
 	GET_PID_KD,
 	GET_PID_INT_LIM,
 	GET_PID_OUT_LIM,
-	GET_PID_FOLLOWING_ERROR,
-	GET_PID_OUTPUT,
+	GET_PID_FOLLOWING_ERROR, //Error before gains
+	GET_PID_OUTPUT,			 //Error after gains
 	GET_PID_INT_ERROR,
 	GET_PID_GAIN_SHIFT,
 	SET_PRO_ACCEL,
@@ -83,8 +87,8 @@ typedef enum {
 	SET_PRO_NEG_LIM,
 	SET_PRO_LOAD,
 	SET_PRO_LOAD_AND_GO,
-	SET_PRO_STOP,
-	SET_PRO_START,
+	SET_PRO_STOP,		//Come to a stop
+	SET_PRO_START,		//Start the move
 	GET_PRO_CMD_POS,
 	GET_PRO_CMD_VEL,
 	GET_PRO_CMD_ACCEL,
@@ -109,6 +113,9 @@ typedef struct {
 	log_t	*log;
 	comm_t *comm;
 }mtr_t;
+
+//mtr_t allocation
+mtr_t* MtrAlloc(void);
 
 //Input: mtr_t pointer, motorID, motor address
 mtrStatus_t MtrInit(mtr_t*, comm_t*, mtrID_t, uint8_t);

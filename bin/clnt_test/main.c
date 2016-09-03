@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
@@ -47,15 +48,15 @@ int main(int argc, char **argv) {
 	int32_t pos;
 	uint32_t vel, accel;
 
-	mtrParms.gearRatio[MTR_AZ] = 141.0;
-	mtrParms.gearRatio[MTR_EL] = 24.0;
-	mtrParms.gearRatio[MTR_ELB] = 141.0;
-	mtrParms.gearRatio[MTR_WRST] = 141.0;
+	//mtrParms.gearRatio[MTR_AZ] = 141.0;
+	//mtrParms.gearRatio[MTR_EL] = 24.0;
+	//mtrParms.gearRatio[MTR_ELB] = 141.0;
+	mtrParms.gearRatio[MTR_WRST] = 1.0;
 
-	mtrParms.ctsPerRad[MTR_AZ] = 64.0/2.0/M_PI;
-	mtrParms.ctsPerRad[MTR_EL] = 1960.0/2.0/M_PI;
-	mtrParms.ctsPerRad[MTR_ELB] = 64.0/2.0/M_PI;
-	mtrParms.ctsPerRad[MTR_WRST] = 64.0/2.0/M_PI;
+	//mtrParms.ctsPerRad[MTR_AZ] = 64.0/2.0/M_PI;
+	//mtrParms.ctsPerRad[MTR_EL] = 1960.0/2.0/M_PI;
+	//mtrParms.ctsPerRad[MTR_ELB] = 64.0/2.0/M_PI;
+	mtrParms.ctsPerRad[MTR_WRST] = 1024.0/2.0/M_PI;
 
 
 	//Start logging 
@@ -68,14 +69,17 @@ int main(int argc, char **argv) {
 	for(i=0;i<NUM_MTRS;i++){
 		SendCommand(req, i,SET_PID_DISABLE,&stat);
 		SendCommand(req, i,SET_MTR_DISABLE,&stat);
-		vel = (uint32_t)(20 * DEG2RAD * mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
+		vel = (uint32_t)(180 * DEG2RAD * mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
 		SendCommand(req, i,SET_PRO_MAX_VEL,&vel);
-		accel = (uint32_t)(80 * DEG2RAD * mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
+		accel = (uint32_t)(360 * DEG2RAD * mtrParms.gearRatio[i] * mtrParms.ctsPerRad[i]);
 		SendCommand(req, i,SET_PRO_ACCEL,&accel);
 		stat=0;
 		SendCommand(req, i,SET_PRO_VEL_FINAL,&stat);
 	}
 
+	SendCommand(req, MTR_WRST,SET_MTR_ENABLE,&stat);
+	i=0;
+	SendCommand(req, MTR_WRST,SET_MTR_VOLTAGE,&i);
 
 	Log(logMain, INFO, "Place arm in its #1 position, press SPACE to continue");
 	while(fgetc(stdin) != ' ');
@@ -107,13 +111,15 @@ int main(int argc, char **argv) {
 	for(i=0;i<NUM_MOTORS;i++){	
 		pos = pos1[i];
 		SendCommand(req, i,   SET_PRO_LOAD_AND_GO, &pos);
+		sleep(1);
 	}
 
 	mtrStatus = 0;	
+
 	for(i=0;i<NUM_MOTORS;i++){	
 		SendCommand(req, i,   GET_STATUS, &stat);
 		mtrStatus |= (stat & 0x0060);
-		usleep(10000);
+		sleep(1);
 	}
 	
 	while(1){
@@ -122,40 +128,40 @@ int main(int argc, char **argv) {
 			for(i=0;i<NUM_MOTORS;i++){	
 				SendCommand(req, i,   GET_STATUS, &stat);
 				mtrStatus |= stat & 0x0060;
-				usleep(10000);
+				sleep(1);
 			}
 		}
 		Log(logMain, INFO, "In position 1");
 		for(i=0;i<NUM_MOTORS;i++){	
 			pos = pos2[i];
 			SendCommand(req, i,   SET_PRO_LOAD_AND_GO, &pos);
-			usleep(10000);
+			sleep(1);
 		}
 		mtrStatus = 0;	
 		for(i=0;i<NUM_MOTORS;i++){	
 			SendCommand(req, i,   GET_STATUS, &stat);
 			mtrStatus |= stat & 0x0060;
-			usleep(10000);
+			sleep(1);
 		}		
 		while(mtrStatus) {
 			mtrStatus = 0;	
 			for(i=0;i<NUM_MOTORS;i++){	
 				SendCommand(req, i,   GET_STATUS, &stat);
 				mtrStatus |= stat & 0x0060;
-				usleep(10000);
+				sleep(1);
 			}
 		}
 		Log(logMain, INFO, "In position 2");
 		for(i=0;i<NUM_MOTORS;i++){	
 			pos = pos1[i];
 			SendCommand(req, i,   SET_PRO_LOAD_AND_GO, &pos);
-			usleep(10000);
+			sleep(1);
 		}
 		mtrStatus = 0;	
 		for(i=0;i<NUM_MOTORS;i++){	
 			SendCommand(req, i,   GET_STATUS, &stat);
 			mtrStatus |= stat & 0x0060;
-			usleep(10000);
+			sleep(1);
 		}
 	};
 	zmq_close (req);

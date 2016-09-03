@@ -2,9 +2,11 @@ CC=gcc
 CFLAGS= -O0 -D _OS_X_ -D__linux__ -I /opt/local/include
 LDFLAGS= -L/opt/local/lib -lzmq
 SOURCES= $(wildcard *.c) \
-				 $(wildcard ../../mtr_clnt/*.c) 
+			$(wildcard ../../mtr_if/*.c ) \
+			$(wildcard ../../log/*.c)\
+		   $(wildcard ../../comm/*.c) 
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=mac_test
+EXECUTABLE=mtr_srv
 
 all: $(SOURCES) $(EXECUTABLE)
 

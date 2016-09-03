@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -D _OS_X_
+CFLAGS= -D _OS_X_ -I/opt/local/include
 LDFLAGS= -L/opt/local/lib -lzmq
 SOURCES= $(wildcard ../../log/*.c)\
 	 $(wildcard *.c)

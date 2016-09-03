@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=
+CFLAGS= 
 LDFLAGS= -lrt -lzmq
 SOURCES= $(wildcard *.c) \
 			$(wildcard ../../mtr_if/*.c ) \
