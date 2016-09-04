@@ -1,185 +1,34 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-
-
-#include "../../log/log.h"
-#include "../../comm/comm.h"
-#include "../../mtr_if/mtr_if.h"
-#include "../mtr_srv/mtr_srv.h"
-#include "../../mtr_clnt/mtr_clnt.h"
-
-#define TIMEOUT 100
-#define CLNTID  0x4321
+#include <zmq.h>
+#include "Motor.h"
 
 int main(int argc, char **argv) {
-	int i=0;
-	int pos1[NUM_MOTORS], pos2[NUM_MOTORS];	
-	int pos=0;
-	uint32_t stat;
-	uint32_t mtrStatus=0;
-   key_t key;
-   mtrCmdIf_t *mtrCmdIf;
-	log_t *logMain;
 
-   key = 0x4848;
+	void *context = zmq_ctx_new ();
+	void *req = zmq_socket (context, ZMQ_REQ);
+	zmq_connect (req, "tcp://192.168.2.153:5555");
+
+	Motor az(req,0);
+	Motor el(req,1);
+	Motor wrst(req,2);
+
+	printf("Setting up motors...\n");
+	az.setupBrushedMotor(12000,12000,REVERSED);
+	el.setupBrushedMotor(12000,12000,REVERSED);
+	wrst.setupBrushedMotor(12000,12000,REVERSED);
+  //Setting Kp, Ki, Kd
+  az.setupPID(50.0, 0, 0.1);
+  el.setupPID(50.0, 0, 0.1);
+  wrst.setupPID(50.0, 0, 0.1);
+  //Setting stop deceleration rate, accel/decel rate, max speed
+  az.setupTrap(50000, 20000, 10000);
+  el.setupTrap(50000, 20000, 10000);
+  wrst.setupTrap(50000, 20000, 10000);
+
+	printf("Enabling motors...\n");
+	az.enable();
+	el.enable();
+	wrst.enable();
 	
-	//Start logging 
-	logMain = LogAlloc();
-	LogInit(logMain,STDOUT,"MAIN"); 
-	Log(logMain, INFO, "Starting simple i/f test");
-
-	MtrClntShmat(&mtrCmdIf, key);
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_DISABLE, &stat, TIMEOUT,CLNTID);
-	}
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_DISABLE, &stat, TIMEOUT,CLNTID);
-	}
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		stat = 11000;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_BUS_VOLTAGE, &stat, TIMEOUT,CLNTID);
-		stat = 11000;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_OUT_LIM, &stat, TIMEOUT,CLNTID);
-		stat = 4;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_GAIN_SHIFT, &stat, TIMEOUT,CLNTID);
-		stat = 10000;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_INT_LIM, &stat, TIMEOUT,CLNTID);
-	}
-	
-	stat = -1;
-	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_MTR_ENC_SIGN, &stat, TIMEOUT,CLNTID);
-		
-	stat = 500;
-	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KP, &stat, TIMEOUT,CLNTID);
-	stat = 1000;
-	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KP, &stat, TIMEOUT,CLNTID);
-	stat = 600;
-	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KP, &stat, TIMEOUT,CLNTID);
-	stat = 500;
-	MtrClntSendCmd(mtrCmdIf, MTR_WRST, SET_PID_KP, &stat, TIMEOUT,CLNTID);
-
-	stat = 1;
-	MtrClntSendCmd(mtrCmdIf, MTR_AZ,   SET_PID_KI, &stat, TIMEOUT,CLNTID);
-	stat = 0;
-	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PID_KI, &stat, TIMEOUT,CLNTID);
-	stat = 1;
-	MtrClntSendCmd(mtrCmdIf, MTR_ELB,  SET_PID_KI, &stat, TIMEOUT,CLNTID);
-	stat = 1;
-	MtrClntSendCmd(mtrCmdIf, MTR_WRST, SET_PID_KI, &stat, TIMEOUT,CLNTID);
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		stat = 250;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_ACCEL, &stat, TIMEOUT,CLNTID);
-		stat = 1000;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_MAX_VEL, &stat, TIMEOUT,CLNTID);
-		stat = 0;
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_VEL_FINAL, &stat, TIMEOUT,CLNTID);
-	}
-
-	stat = 6000;
-	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PRO_ACCEL, &stat, TIMEOUT,CLNTID);
-	stat = 6000;
-	MtrClntSendCmd(mtrCmdIf, MTR_EL,   SET_PRO_MAX_VEL, &stat, TIMEOUT,CLNTID);
-	
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_BUS_VOLTAGE, &stat, TIMEOUT,CLNTID);
-		Log(logMain,INFO,"mtr[%d].busV = %d",i,stat);
-		MtrClntSendCmd(mtrCmdIf, i,   GET_PID_KP, &stat, TIMEOUT,CLNTID);
-		Log(logMain,INFO,"pid[%d].kp = %d",i,stat);
-		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_ACCEL, &stat, TIMEOUT,CLNTID);
-		Log(logMain,INFO,"pro[%d].accel = %d",i,stat);
-		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_MAX_VEL, &stat, TIMEOUT,CLNTID);
-		Log(logMain,INFO,"pro[%d].maxV = %d",i,stat);
-		MtrClntSendCmd(mtrCmdIf, i,   GET_PRO_VEL_FINAL, &stat, TIMEOUT,CLNTID);
-		Log(logMain,INFO,"pro[%d].vf = %d",i,(int)stat);
-	}
-	
-	Log(logMain, INFO, "Place arm in its #1 position, press SPACE to continue");
-	while(fgetc(stdin) != ' ');
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos1[i], TIMEOUT,CLNTID);
-		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos1[i]);
-	}
-	Log(logMain, INFO, "Place arm in its #2 position, press SPACE to continue");
-	while(fgetc(stdin) != ' ');
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   GET_MTR_POS, &pos2[i], TIMEOUT,CLNTID);
-		Log(logMain,INFO,"mtr[%d].pos = %d",i,pos2[i]);
-	}
-
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   SET_MTR_ENABLE, &stat, TIMEOUT,CLNTID);
-	}
-
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PID_ENABLE, &stat, TIMEOUT,CLNTID);
-	}
-	
-	Log(logMain, INFO, "PID enabled, press SPACE to start motion");
-	while(fgetc(stdin) != ' ');
-
-	for(i=0;i<NUM_MOTORS;i++){	
-		pos = pos1[i];
-		MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT,CLNTID);
-	}
-
-	mtrStatus = 0;	
-	for(i=0;i<NUM_MOTORS;i++){	
-		MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
-		mtrStatus |= (stat & 0x0060);
-		usleep(10000);
-	}
-	
-	while(1){
-		while(mtrStatus) {
-			mtrStatus = 0;	
-			for(i=0;i<NUM_MOTORS;i++){	
-				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
-				mtrStatus |= stat & 0x0060;
-				usleep(10000);
-			}
-		}
-		Log(logMain, INFO, "In position 1");
-		for(i=0;i<NUM_MOTORS;i++){	
-			pos = pos2[i];
-			MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT,CLNTID);
-			usleep(10000);
-		}
-		mtrStatus = 0;	
-		for(i=0;i<NUM_MOTORS;i++){	
-			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
-			mtrStatus |= stat & 0x0060;
-			usleep(10000);
-		}		
-		while(mtrStatus) {
-			mtrStatus = 0;	
-			for(i=0;i<NUM_MOTORS;i++){	
-				MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
-				mtrStatus |= stat & 0x0060;
-				usleep(10000);
-			}
-		}
-		Log(logMain, INFO, "In position 2");
-		for(i=0;i<NUM_MOTORS;i++){	
-			pos = pos1[i];
-			MtrClntSendCmd(mtrCmdIf, i,   SET_PRO_LOAD_AND_GO, &pos, TIMEOUT,CLNTID);
-			usleep(10000);
-		}
-		mtrStatus = 0;	
-		for(i=0;i<NUM_MOTORS;i++){	
-			MtrClntSendCmd(mtrCmdIf, i,   GET_STATUS, &stat, TIMEOUT,CLNTID);
-			mtrStatus |= stat & 0x0060;
-			usleep(10000);
-		}
-	};
-
-	return 0;
 }
