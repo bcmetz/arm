@@ -146,9 +146,10 @@ int main(int argc, char **argv) {
 	int rc = zmq_bind (responder, "tcp://*:5555");
 	assert (rc == 0);
 
-	if(argc != 1) {
+	if(argc != 2) {
 		printf("Incorrect usage:\n");
 		printf("%s [i2c port#]\n", argv[0]);
+		exit(1);
 	}
 
 	logMain = LogAlloc();
