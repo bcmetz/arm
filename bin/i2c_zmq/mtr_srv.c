@@ -24,8 +24,8 @@ uint32_t SendCommandi2c(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) {
   uint8_t buf[5];
 	uint32_t ret;
 
-	if (ioctl(file,I2C_SLAVE,BASE_ADDR+id) < 0) {
-        Log(logMain, ERROR, "Failed to acquire bus access and/or talk to slave.\n");
+	if (ioctl(file,I2C_SLAVE,BASE_ADDR+id+1) < 0) {
+        Log(logMain, ERROR, "Failed to acquire bus access and/or talk to slave.");
         /* ERROR HANDLING; you can check errno to see what went wrong */
         exit(1);
     }   
@@ -41,14 +41,14 @@ uint32_t SendCommandi2c(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) {
 				BASE_ADDR+id, buf[0], buf[1], buf[2], buf[3], buf[4]); 
     if (write(file,buf,5) != 5) {
         /* ERROR HANDLING: i2c transaction failed */
-        Log(logMain, WARNING, "Failed to write to address 0x%00x\n",BASE_ADDR+id);
+        Log(logMain, WARNING, "Failed to write to address 0x%00x",BASE_ADDR+id);
 				return -1;
     }
 
 		//Reading back reply
     if (read(file,buf,4) != 4) {
       /* ERROR HANDLING: i2c transaction failed */
-      Log(logMain, WARNING, "Failed to read from address 0x%00x\n",BASE_ADDR+id);
+      Log(logMain, WARNING, "Failed to read from address 0x%00x",BASE_ADDR+id);
 			return -1;
     }
 		Log(logMain, DIAG, "Received addr:0x%00x data:0x%00x 0x%00x 0x%00x 0x%00x",
