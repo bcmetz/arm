@@ -1,2 +1,3 @@
 *.o
 *.swp
+./bin/tlm_rec/tlm_rec

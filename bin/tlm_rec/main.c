@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-	zmq_connect (req, "tcp://localhost:5555");
+	zmq_connect (req, "tcp://192.168.2.153:5555");
 
 
 	//Start logging 
