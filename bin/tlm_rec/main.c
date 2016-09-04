@@ -12,7 +12,7 @@
 #include "../../comm/comm.h"
 #include "../../mtr_if/mtr_if.h"
 #include "../../mtr_clnt/mtr_clnt.h"
-#include "../mtr_srv/mtr_srv.h"
+#include "../i2c_zmq/mtr_srv.h"
 
 int main(int argc, char **argv) {
 	int i;

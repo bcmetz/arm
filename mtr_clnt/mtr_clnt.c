@@ -6,7 +6,7 @@
 #include "../log/log.h"
 #include "../comm/comm.h"
 #include "../mtr_if/mtr_if.h"
-#include "../bin/mtr_srv/mtr_srv.h"
+#include "../bin/i2c_zmq/mtr_srv.h"
 
 //Client interface to server
 mtrStatus_t SendCommand(void *req, mtrID_t mtrID, cmdID_t cmd, uint32_t *data){
@@ -15,11 +15,11 @@ mtrStatus_t SendCommand(void *req, mtrID_t mtrID, cmdID_t cmd, uint32_t *data){
   mtrCmdRep_t mtrCmdRep;
 	mtrStatus_t ret; 
 
-	mtrCmdReq.mtrID=mtrID;
-	mtrCmdReq.cmdID = cmd;
+	mtrCmdReq.mtrID=(uint8_t)mtrID;
+	mtrCmdReq.cmdID = (uint8_t)cmd;
 	mtrCmdReq.data = *data;		
 	zmq_send (req, &mtrCmdReq, sizeof(mtrCmdReq_t), 0);	
 	zmq_recv (req, &mtrCmdRep, sizeof(mtrCmdRep_t), 0);
 	*data = mtrCmdRep.data;
-	return mtrCmdRep.ret;
+	return 1;
 }

@@ -20,7 +20,7 @@
 log_t *logMain;
 
 
-uint32_t SendCommand(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) {
+uint32_t SendCommandi2c(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) {
   uint8_t buf[5];
 	uint32_t ret;
 
@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 
 	while(1) {
 		zmq_recv (responder, &mtrCmdReq, sizeof(mtrCmdReq_t), 0);
-		mtrCmdRep.data = SendCommand(file, mtrCmdReq.mtrID, mtrCmdReq.cmdID, mtrCmdReq.data);
+		mtrCmdRep.data = SendCommandi2c(file, mtrCmdReq.mtrID, mtrCmdReq.cmdID, mtrCmdReq.data);
 		zmq_send (responder, &mtrCmdRep, sizeof(mtrCmdRep_t), 0);
 	}	
 

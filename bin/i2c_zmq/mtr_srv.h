@@ -17,7 +17,7 @@ typedef struct {
 	uint32_t data;
 } mtrCmdRep_t;
 
-uint32_t SendCommand(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) ;
+uint32_t SendCommandi2c(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) ;
 uint8_t FindMotors(int file) ;
 
 #endif
