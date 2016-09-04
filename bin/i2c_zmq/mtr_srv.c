@@ -1,12 +1,15 @@
+#include <errno.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <assert.h>
-#include <math.h>
+#include <unistd.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <assert.h>
 #include <zmq.h>
 
 #include "../../log/log.h"
@@ -45,7 +48,7 @@ uint32_t SendCommand(int32_t file, uint8_t id, uint8_t cmd, uint32_t data) {
 		//Reading back reply
     if (read(file,buf,4) != 4) {
       /* ERROR HANDLING: i2c transaction failed */
-      Log(logMain, WARNING, "Failed to read from address 0x%00x\n",BAES_ADDR+id);
+      Log(logMain, WARNING, "Failed to read from address 0x%00x\n",BASE_ADDR+id);
 			return -1;
     }
 		Log(logMain, DIAG, "Received addr:0x%00x data:0x%00x 0x%00x 0x%00x 0x%00x",
@@ -150,7 +153,7 @@ int main(int argc, char **argv) {
 
 	logMain = LogAlloc();
 	LogInit(logMain,STDOUT,"SERV"); 
-	Log(logMain, INFO, "Starting motor interface server");
+	Log(logMain, INFO, "Starting motor interface server, port 5555");
 
 	//Open the i2c port
 	Log(logMain, INFO, "Opening i2c port /dev/i2c-%s", argv[1]);
@@ -169,7 +172,7 @@ int main(int argc, char **argv) {
 
 	while(1) {
 		zmq_recv (responder, &mtrCmdReq, sizeof(mtrCmdReq_t), 0);
-		mtrCmdRep.data = SendCommand(mtrCmdReq.mtrID, mtrCmdReq.cmdID, mtrCmdReq.data);
+		mtrCmdRep.data = SendCommand(file, mtrCmdReq.mtrID, mtrCmdReq.cmdID, mtrCmdReq.data);
 		zmq_send (responder, &mtrCmdRep, sizeof(mtrCmdRep_t), 0);
 	}	
 
