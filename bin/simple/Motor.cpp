@@ -119,6 +119,10 @@ uint32_t Motor::setupPID(float kp, float ki, float kd, uint32_t intLimit) {
 //Motion trap settings
 uint32_t Motor::setupTrap(uint32_t stopAccel, uint32_t accel, uint32_t maxVel) {
 	uint32_t ret;
+
+	_a = (double) accel;
+	_vMax = (double) maxVel;
+
 	ret = SendCommand(_id, CMD_SET_PRO_STOP_ACCEL, stopAccel); 	
 	ret |= SendCommand(_id, CMD_SET_PRO_ACCEL, accel); 	
 	ret |= SendCommand(_id, CMD_SET_PRO_MAX_VEL, maxVel); 
@@ -176,8 +180,24 @@ uint32_t Motor::move(int32_t pos, uint32_t maxVel) {
 	return ret;
 }
 
+uint32_t Motor::start() {
+	return SendCommand(_id, CMD_SET_PRO_START, 0);
+}
+
 uint32_t Motor::stop() {
 	return SendCommand(_id, CMD_SET_PRO_STOP, 0);
+}
+
+uint32_t Motor::loadProfileMove(profileMove move) {
+	uint32_t ret; 
+
+	ret = SendCommand(_id, CMD_SET_PRO_ACCEL, (uint32_t) move.a); 
+	ret |= SendCommand(_id, CMD_SET_PRO_MAX_VEL, (uint32_t) move.vMax); 
+	ret |= SendCommand(_id, CMD_SET_PRO_VEL_FINAL, (int32_t) move.vf);
+	ret |= SendCommand(_id, CMD_SET_PRO_POS_FINAL, (int32_t) move.xf);
+	ret |= SendCommand(_id, CMD_SET_PRO_LOAD, 0);
+
+	return ret;		
 }
 
 uint32_t Motor::softLimitsPosNeg(int32_t pos, int32_t neg) {

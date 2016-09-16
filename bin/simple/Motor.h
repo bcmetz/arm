@@ -105,6 +105,15 @@ typedef struct {
 typedef enum {PROFILE_IDLE, MOVING_BUF1, MOVING_BUF2} profilerState_t;
 typedef enum {EMPTY, LOADED, READY, BUSY} profileBufferState_t;
 
+typedef struct {
+  double a;
+  double v0;
+  double vf;
+  double vMax;
+  double x0;
+  double xf;
+} profileMove;
+
 
 //We need this because we dont want to cast to uint
 typedef union {
@@ -122,6 +131,9 @@ class Motor
 	public:
 		uint8_t 	serialOutput;	
 		ctrlStatus_t status;
+		double	_aStop;
+		double	_a;
+		double 	_vMax;
 
 		void			begin();
 		Motor(void* req, uint8_t id);
@@ -144,7 +156,9 @@ class Motor
 		uint32_t	disable();
 		uint32_t	move(int32_t pos);
 		uint32_t	move(int32_t pos, uint32_t maxVel);
+		uint32_t	start();
 		uint32_t	stop();
+		uint32_t	loadProfileMove(profileMove move);
 		uint32_t	getStatus();
 	
 	private:
@@ -155,5 +169,6 @@ class Motor
 		uint8_t _trapSet;
 		uint32_t SendCommand(uint8_t id, cmdID_t cmd, uint32_t data);
 };
+
 
 #endif
