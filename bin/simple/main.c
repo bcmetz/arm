@@ -3,6 +3,7 @@
 #include <zmq.h>
 #include <unistd.h>
 #include "Motor.h"
+#include "Coord.h"
 
 int main(int argc, char **argv) {
 	int az_cmd, el_cmd, elb_cmd, wrst_cmd;
@@ -10,12 +11,14 @@ int main(int argc, char **argv) {
 		
 	void *context = zmq_ctx_new ();
 	void *req = zmq_socket (context, ZMQ_REQ);
-	zmq_connect (req, "tcp://192.168.2.153:5555");
+	zmq_connect (req, "tcp://192.168.7.2:5555");
 
 	Motor az(req,0);
 	Motor el(req,1);
 	Motor elbow(req,2);
 	Motor wrst(req,3);
+
+	Coord coord;
 
 	printf("Setting up motors...\n");
 	az.disable();
@@ -35,10 +38,10 @@ int main(int argc, char **argv) {
   wrst.setupPID(10, 0, 0);
 
   //Setting stop deceleration rate, accel/decel rate, max speed
-  az.setupTrap(50000, 20000, 10000);
-  el.setupTrap(50000, 20000, 10000);
-  elbow.setupTrap(50000, 20000, 10000);
-  wrst.setupTrap(50000, 20000, 10000);
+  az.setupTrap(50000, 5000, 5000);
+  el.setupTrap(50000, 5000, 5000);
+  elbow.setupTrap(50000, 5000, 5000);
+  wrst.setupTrap(50000, 5000, 5000);
 
 	az.setPosition(0);
 	el.setPosition(0);
@@ -51,6 +54,8 @@ int main(int argc, char **argv) {
 	wrst_pos=0;
 
 	printf("Enabling motors...\n");
+
+
 	az.enable();
 	el.enable();
 	elbow.enable();
@@ -66,10 +71,12 @@ int main(int argc, char **argv) {
 		elb_pos += elb_cmd;
 		wrst_pos += wrst_cmd;
 
-		az.move(az_pos);
-		el.move(el_pos);
-		elbow.move(elb_pos);
-		wrst.move(wrst_pos);
+		coord.addMove(&az, az_pos);
+		coord.addMove(&el, el_pos);
+		coord.addMove(&elbow, elb_pos);
+		coord.addMove(&wrst, wrst_pos);
+		coord.startCoordMove();
+
 	}
 	
 }
