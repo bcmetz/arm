@@ -11,12 +11,12 @@ int main(int argc, char **argv) {
 		
 	void *context = zmq_ctx_new ();
 	void *req = zmq_socket (context, ZMQ_REQ);
-	zmq_connect (req, "tcp://192.168.7.2:5555");
+	zmq_connect (req, "tcp://192.168.8.1:5555");
 
 	Motor lf(req,0);
 	Motor rf(req,1);
-	Motor lr(req,2);
-	Motor rr(req,3);
+	Motor lr(req,3);
+	Motor rr(req,2);
 
 	Coord coord;
 
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
 	lf.setupBrushedMotor(12000,12000,REVERSED);
 	rf.setupBrushedMotor(12000,12000,REVERSED);
-	lr.setupBrushedMotor(12000,12000,STANDARD);
+	lr.setupBrushedMotor(12000,12000,REVERSED);
 	rr.setupBrushedMotor(12000,12000,REVERSED);
 
   //Setting Kp, Ki, Kd
@@ -38,10 +38,10 @@ int main(int argc, char **argv) {
 	rr.setupPID(50, 0, 0);
 
   //Setting stop decrf.ration rate, accrf.decrf.rate, max speed
-  lf.setupTrap(50000, 20000, 10000);
-	rf.setupTrap(50000, 20000, 10000);
-	lr.setupTrap(50000, 20000, 10000);
-	rr.setupTrap(50000, 20000, 10000);
+  lf.setupTrap(50000, 2000, 5000);
+	rf.setupTrap(50000, 2000, 5000);
+	lr.setupTrap(50000, 2000, 5000);
+	rr.setupTrap(50000, 2000, 5000);
 
 	lf.setPosition(0);
 	rf.setPosition(0);
